@@ -152,6 +152,8 @@ def run():
             "id":case[0],
             "source_sha256":r["cnf_source_sha256"],
             "unit_proof":proof,
+            "original_cnf_for_independent_replay":([list(row) for row in cnf]
+                if proof.get("solver_status")=="UNSAT" else None),
             "isolated_peak_rss":isolated,
         })
     summary={}
