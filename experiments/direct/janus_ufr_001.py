@@ -67,15 +67,20 @@ def canonicalize(
     check_kind(kind)
     source = normalize(rows)
     vs = variables(source)
-    features: dict[int, tuple[tuple[int, int, int], ...]] = {}
-    for v in vs:
-        counts: dict[tuple[int, int], int] = {}
-        for row in source:
-            for lit in row:
-                if abs(lit) == v:
-                    tag = (len(row), 1 if lit > 0 else -1)
-                    counts[tag] = counts.get(tag, 0) + 1
-        features[v] = tuple((width, sign, count) for (width, sign), count in sorted(counts.items()))
+    # One incidence pass instead of scanning every literal for every variable.
+    # Keep signatures and ordering *identical* to the UFR-001 reference.
+    incidence: dict[int, dict[tuple[int, int], int]] = {v: {} for v in vs}
+    for row in source:
+        width = len(row)
+        for lit in row:
+            counts = incidence[abs(lit)]
+            tag = (width, 1 if lit > 0 else -1)
+            counts[tag] = counts.get(tag, 0) + 1
+    features = {
+        v: tuple((width, sign, count) for (width, sign), count
+                 in sorted(incidence[v].items()))
+        for v in vs
+    }
     groups = [tuple(v for v in vs if features[v] == feature)
               for feature in sorted(set(features.values()))]
     candidate_count = 1
