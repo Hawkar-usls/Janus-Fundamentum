@@ -73,7 +73,7 @@ class PartialConsistencyTests(unittest.TestCase):
                         for __ in range(rng.randint(0,5)))
                         for ___ in range(rng.randint(0,10)))
                     truth=independent_truth(rows,n,kind)
-                    for policy in ("unit","lookahead"):
+                    for policy in ("unit","lookahead","selective"):
                         result=search(rows,n,kind,policy=policy,probe_width=2,
                                       max_nodes=10000,max_visits=400000,seconds=3.0)
                         self.assertEqual(result.status,"SAT" if truth else "UNSAT")
@@ -83,7 +83,7 @@ class PartialConsistencyTests(unittest.TestCase):
                             else result.unsat_independent_exhaustive_check)
                         self.assertGreater(len(result.source_sha256),60)
                         counts+=1
-        self.assertEqual(counts,700)
+        self.assertEqual(counts,1050)
 
     def test_small_exhaustive_propagation_sound_on_every_partial_state(self):
         rng=random.Random(202611011)
@@ -127,6 +127,21 @@ class PartialConsistencyTests(unittest.TestCase):
             for policy in ("unit","lookahead"):
                 observed=search(rows,n,kind,policy=policy)
                 self.assertEqual(observed.status=="SAT",expected)
+
+    def test_selective_probe_quota_is_fallback_not_unsat(self):
+        rows=((-1,2),(-1,-2),(1,3))
+        plain=search(rows,3,policy="unit")
+        capped=search(rows,3,policy="selective",probe_share=0,
+                      max_visits=400,seconds=3)
+        self.assertEqual(capped.status,plain.status)
+        self.assertEqual(capped.status,"SAT")
+        self.assertTrue(capped.probe_quota_exhausted)
+        self.assertTrue(capped.model_independently_verified)
+        self.assertLessEqual(capped.probe_clause_visits,1)
+        with self.assertRaises(ValueError):
+            search(rows,3,policy="selective",probe_share=0.26)
+        with self.assertRaises(ValueError):
+            search(rows,3,policy="selective",probe_share=True)
 
     def test_budget_exhaustion_is_unknown_not_unsat(self):
         # n=240 with no constraints has 2^240 candidate assignments but
