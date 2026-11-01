@@ -98,7 +98,7 @@ class DeutschFalsification(unittest.TestCase):
                             (name, result, expected))
             self.assertEqual(result.oracle_basis_evaluations, N * (1 + result.iterations))
             self.assertEqual(result.synthesized_gate_applications,
-                             N * result.iterations * len(c.gates))
+                             2 * N * result.iterations * len(c.gates))
             if m == 0:
                 self.assertFalse(result.best_candidate_validated)
                 self.assertIsNone(result.best_candidate)
