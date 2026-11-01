@@ -464,11 +464,18 @@ def dump_ufr_json(policy: UFRFCTracePolicy, root_call: int) -> str:
                       sort_keys=True, separators=(',', ':'))
 
 
-def load_ufr_json(payload: str) -> dict[str, Any]:
-    """Decode only the explicit tagged primitives, rejecting malformed envelopes."""
+def load_ufr_json(payload: str, *, max_bytes: int = 25_000_000) -> dict[str, Any]:
+    """Decode tagged primitives with bounded opt-in large-proof research mode.
+
+    Default payload cap is unchanged. A caller may explicitly raise the cap
+    for a pinned large experimental proof, but never beyond 200 MB. This
+    does not waive any independent proof-replay validation.
+    """
     import json
 
-    if type(payload) is not str or len(payload) > 25_000_000:
+    if (type(max_bytes) is not int or not 1 <= max_bytes <= 200_000_000
+            or type(payload) is not str
+            or len(payload.encode('utf-8')) > max_bytes):
         raise ValueError('invalid UFR certificate payload')
     wire = json.loads(payload)
 
@@ -500,6 +507,7 @@ def load_ufr_json(payload: str) -> dict[str, Any]:
 
 
 def replay_ufr_json(root_cnf: CNF, variable_count: int,
-                    payload: str) -> bool:
-    """Independently replay a round-tripped portable certificate."""
-    return replay_ufr(root_cnf, variable_count, load_ufr_json(payload))
+                    payload: str, *, max_bytes: int = 25_000_000) -> bool:
+    """Independently replay a bounded round-tripped portable certificate."""
+    return replay_ufr(root_cnf, variable_count,
+                      load_ufr_json(payload, max_bytes=max_bytes))
