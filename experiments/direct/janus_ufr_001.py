@@ -111,6 +111,26 @@ def canonicalize(
     return Canonical(kind, best_key, best_forward, exhaustive, checked)
 
 
+
+def coarse_signature(rows: Rows):
+    """Fast necessary condition for a literal-preserving variable bijection.
+
+    Preserve the clause-width histogram, aggregate sign counts and active
+    variable count. Collisions are only candidates, never certified matches.
+    This inexpensive outer filter lets most states skip expensive signatures.
+    """
+    widths: dict[int, int] = {}
+    positive = 0
+    active: set[int] = set()
+    for row in rows:
+        width = len(row)
+        widths[width] = widths.get(width, 0) + 1
+        for literal in row:
+            positive += literal > 0
+            active.add(abs(literal))
+    return (tuple(sorted(widths.items())), positive, len(active))
+
+
 def structural_signature(rows: Rows):
     """Cheap necessary invariant for variable-renaming isomorphism.
 
