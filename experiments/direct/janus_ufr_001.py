@@ -58,6 +58,7 @@ class Canonical:
 def canonicalize(
     rows: Iterable[Iterable[int]], kind: Kind = "SAT", *,
     max_variables: int = 12, max_candidates: int = 720,
+    already_c023_cnf: bool = False,
 ) -> Canonical:
     """Sound candidate key; only complete for allowed signature-permutation budget.
 
@@ -65,7 +66,10 @@ def canonicalize(
     can be factorial; max_variables/max_candidates limit this expenditure.
     """
     check_kind(kind)
-    source = normalize(rows)
+    # Strictly an internal fast path: the C023 caller has already produced
+    # canonical_cnf. Full normalization remains the public default.
+    # All cache hits still require independent literal-level verification.
+    source = tuple(rows) if already_c023_cnf else normalize(rows)
     vs = variables(source)
     # One incidence pass instead of scanning every literal for every variable.
     # Keep signatures and ordering *identical* to the UFR-001 reference.
