@@ -101,6 +101,8 @@ class Tachyon001Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             search(((1,),), 11)
         with self.assertRaises(ValueError):
+            search((tuple([1] * 17),), 3, "EXACT_ONE")
+        with self.assertRaises(ValueError):
             search(((0,),), 3)
         with self.assertRaises(ValueError):
             search(((4,),), 3)
