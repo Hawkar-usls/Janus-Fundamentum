@@ -1,0 +1,134 @@
+name: JANUS TIME-SAT-004E12A frozen E11 falsification by exact CNF clause-order invariance
+on:
+  push:
+    branches: [research/time-sat-004e12-clause-order-falsification-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12a-clause-order.yml
+      - experiments/direct/janus_time_sat_004e12a_clause_order.py
+      - experiments/time_sat_004_external/janus_time_sat_004e12a_audit.py
+      - tests/test_time_sat_004e12a_clause_order.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004e12a-source-equivalent-original-E11-no-retune
+  cancel-in-progress: false
+jobs:
+  freeze-24-SAT-equivalent-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 8 original CNFs and all 24 exact clause multiset, SAT source model and seeded shuffle equivalences
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12a_clause_order.py' -v
+      - name: E11 previous policy equivalence regression unchanged
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e11_parity_probe.py' -v
+      - name: C023 original serialized verifier unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Freeze transformed source SHA and full original SAT model SHA plus E11 predecision before any 16 VM workers
+        run: >-
+          python experiments/direct/janus_time_sat_004e12a_clause_order.py
+          --preflight --out evidence/e12a-original-source-lock
+      - name: Preserve exact presolve original source/decision SHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12a-source-lock-before-workers
+          path: evidence/e12a-original-source-lock/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+
+  unmodified-E11-vs-native-vs-raw:
+    needs: [freeze-24-SAT-equivalent-sources]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case:
+          - e11-torus-cross-16x16
+          - e11-torus-cross-22x22
+          - e11-circulant-5tap-n256
+          - e11-circulant-5tap-n384
+          - e11-diagonal-grid-14x14
+          - e11-diagonal-grid-20x20
+          - e10-exactone-t48
+          - mixed-planted-xor-n224
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    env:
+      E12_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12a-source-lock-before-workers
+          path: evidence/e12a-original-source-lock
+      - name: Same pinned native XOR and raw CryptoMiniSat on every VM
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: 3 exact SAT-equivalent CNF representations x 3 frozen arms x 2 cold repeats with full original SAT-model replay
+        run: >-
+          python experiments/direct/janus_time_sat_004e12a_clause_order.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e12a-original-source-lock/SOURCE_LOCK.json
+          --out evidence/e12a-original-workers
+      - name: Retain every original 18-child worker receipt and any negative/CPU UNKNOWN
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12a-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e12a-original-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  separate-original-source-audit:
+    if: always()
+    needs: [freeze-24-SAT-equivalent-sources, unmodified-E11-vs-native-vs-raw]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12a-source-lock-before-workers
+          path: evidence/e12a-original-source-lock
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e12a-worker-*
+          path: evidence/e12a-original-workers
+          merge-multiple: true
+      - name: Fail on non-original source model, missing any 16 VM or 288 children and E11 predecision receipt
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12a_audit.py
+          --source-lock evidence/e12a-original-source-lock/SOURCE_LOCK.json
+          --original-receipts evidence/e12a-original-workers
+          --out evidence/e12a-original-audit/AUDIT.json
+      - name: Preserve original same-GitHub-owner audit, NOT an external scientific custodian
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12a-original-audit
+          path: evidence/e12a-original-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
