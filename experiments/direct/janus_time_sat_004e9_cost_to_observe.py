@@ -100,6 +100,7 @@ def observed_training_model():
     p=frozen()
     if git_blob(E8_SUMMARY)!=E8_SUMMARY_BLOB:
         raise AssertionError("E8 source archive SHA changed after E9 prereg")
+    sys.path.insert(0,str(ROOT))  # Prior E8 audit lives in adjacent original-archive module directory
     from janus_time_sat_004e8_audit import audit as old_audit
     a=old_audit(E8_RECEIPTS)
     if (a["source_scientific_run_id"]!="41454451078"
