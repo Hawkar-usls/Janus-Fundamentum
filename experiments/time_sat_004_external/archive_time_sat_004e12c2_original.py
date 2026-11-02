@@ -14,7 +14,7 @@ from zipfile import ZipFile
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from janus_time_sat_004e12c2_audit import audit
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"direct"))
-import janus_time_sat_004e12c2_cost_aware as m
+import janus_time_sat_004e12c2_width6_no_probe as m
 REPO="Hawkar-usls/Janus-Fundamentum"
 RUN=41494290465
 HEAD="4843551a192753e676a319aadc2e78644dc609c6"
