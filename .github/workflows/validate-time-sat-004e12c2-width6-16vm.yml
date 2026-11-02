@@ -1,0 +1,128 @@
+name: JANUS TIME-SAT-004E12C2 source-certified width6 vs previous cost selection (research only)
+on:
+  push:
+    branches: [research/time-sat-004e12c2-width6-no-raw-probe-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12c2-width6-16vm.yml
+      - experiments/direct/janus_time_sat_004e12c2_width6_no_probe.py
+      - experiments/time_sat_004_external/janus_time_sat_004e12c2_audit.py
+      - tests/test_time_sat_004e12c2_width6_no_probe.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-004e12c2-first-frozen-8-original-source-family-no-raw-pilot
+  cancel-in-progress: false
+jobs:
+  source-lock-before-any-VM:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check all 24 original-source clause-multiset models and C2 width6 exact source certificates
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c2_width6_no_probe.py' -v
+      - name: C023 source verifier must remain unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Precommit exact original SHA/model and all 24 variant SHA and decisions BEFORE launching any worker
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c2_width6_no_probe.py
+          --preflight --out evidence/e12c2-source-seal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c2-source-lock-before-workers
+          path: evidence/e12c2-source-seal/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+
+  six-arm-original-cold-worker-matrix:
+    needs: [source-lock-before-any-VM]
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case:
+          - e12c2-ring6-n96
+          - e12c2-ring6-n128
+          - e12c2-hyper6-n110
+          - e12c2-hyper6-n140
+          - e12c2-torus5-g12
+          - e12c2-diagonal4-g12
+          - e12c2-exactone-t25
+          - e12c2-mixed3-n130
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 14
+    permissions:
+      contents: read
+    env:
+      E12C2_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c2-source-lock-before-workers
+          path: evidence/e12c2-source-seal
+      - name: Same pinned normal CryptoMiniSat and CaDiCaL195 reference solvers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Six methods × three exact source-CNF presentations × two independent cold child repeats
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c2_width6_no_probe.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e12c2-source-seal/SOURCE_LOCK.json
+          --out evidence/e12c2-original-workers
+      - name: Preserve all 36 original child source SHA receipts including censored and negative outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c2-original-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e12c2-original-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  independently-recompute-same-admin-original-audit:
+    if: always()
+    needs: [source-lock-before-any-VM, six-arm-original-cold-worker-matrix]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c2-source-lock-before-workers
+          path: evidence/e12c2-source-seal
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e12c2-original-worker-*
+          path: evidence/e12c2-original-workers
+          merge-multiple: true
+      - name: Require exact 16 original VMs and all 576 original outcomes, no wrong SAT or source/order flips
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12c2_audit.py
+          --source-lock evidence/e12c2-source-seal/SOURCE_LOCK.json
+          --receipts evidence/e12c2-original-workers
+          --out evidence/e12c2-original-audit/AUDIT.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sat-e12c2-original-research-audit
+          path: evidence/e12c2-original-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
