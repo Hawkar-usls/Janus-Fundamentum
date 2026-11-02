@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""E12C2 exact 18 GitHub-hosted original ZIP SHA and 716-child proof archive.
+"""E12C2 exact 18 GitHub-hosted original ZIP SHA and 576-child proof archive.
 
 Never call this a third-party witness or a champion; only preserves original
 GitHub administration data and a fresh re-audit of full original SAT clauses.
@@ -97,11 +97,11 @@ def archive(out):
         raise AssertionError("Independent replay of original science same-admin audit failed")
     if (new_audit["original_science_HEAD"]!=HEAD
         or new_audit["original_run_id"]!=str(RUN)
-        or new_audit["original_cold_children"]!=716):
+        or new_audit["original_cold_children"]!=576):
         raise AssertionError("Old archive refers to wrong original commit/run")
     summary={
-       "schema":"JANUS-TIME-SAT-004E12C2-EXACT-18-ORIGINAL-ZIP-16-VM-716-COLD-ARCHIVE-V1",
-       "status":"ORIGINAL_GITHUB_ZIP_SHA_AND_ALL_SOURCE_MODELS_FROZEN_716_CHILD_REAUDITED",
+       "schema":"JANUS-TIME-SAT-004E12C2-EXACT-18-ORIGINAL-ZIP-16-VM-576-COLD-ARCHIVE-V1",
+       "status":"ORIGINAL_GITHUB_ZIP_SHA_AND_ALL_SOURCE_MODELS_FROZEN_576_CHILD_REAUDITED",
        "original_science_run_id":RUN,"original_science_HEAD":HEAD,
        "original_prereg_git_blob":m.BLOB,
        "source_precommitted_before_first_worker":True,
@@ -117,7 +117,7 @@ def archive(out):
     }
     (out/"SUMMARY.json").write_text(json.dumps(summary,sort_keys=True,indent=2)+"\n")
     print("E12C2_SOURCE_SCIENCE_ORIGINAL_ARCHIVE_PASS",json.dumps({
-        "VMs":16,"peak":peak,"ZIPs":18,"children":716,
+        "VMs":16,"peak":peak,"ZIPs":18,"children":576,
         "outcomes":new_audit["original_outcomes"]},sort_keys=True))
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--out",required=True,type=Path)
