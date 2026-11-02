@@ -1,0 +1,118 @@
+name: JANUS TIME-SAT-004E12C3 partial-mask source soundness and variable-isomorphism 16 VMs 640 cold
+on:
+  push:
+    branches: [research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12c3-mask-falsification-16vm.yml
+      - experiments/direct/janus_time_sat_004e12c3_partial_mask_falsification.py
+      - experiments/time_sat_004_external/janus_time_sat_004e12c3_audit.py
+      - tests/test_time_sat_004e12c3_partial_mask_falsification.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c3-incomplete-six-mask-immutable-source-16vm-single-study
+  cancel-in-progress: false
+jobs:
+  preworker-source-model-SHA-and-exhaustive-ablated-masks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Certify complete mask XOR and countermodels for missing masks, source-model SAT and variable renaming
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c3_partial_mask_falsification.py' -v
+      - name: Preserve original frozen C2 width6 source correctness
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c2_width6_no_probe.py' -v
+      - name: Verify production C023 existing serialized checker unmodified
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Freeze exact eight original SHA and 32 SAT models, exact source masks and all four representations BEFORE worker metrics
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c3_partial_mask_falsification.py
+          --preflight --out evidence/e12c3-preworker
+      - name: Publish original source and full model SHA/decision lock before any VM metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c3-source-model-before-16-worker-originals
+          path: evidence/e12c3-preworker/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+  original-ablation-model-verified-matrix:
+    needs: [preworker-source-model-SHA-and-exhaustive-ablated-masks]
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case: [e12c3-hyper6-full-n112, e12c3-hyper6-full-n146, e12c3-hyper6-partial-n112, e12c3-hyper6-partial-n146, e12c3-hyper6-mixed-low-n128, e12c3-hyper6-mixed-high-n128, e12c3-hyper6-full-diluted-n128, e12c3-planted3sat-n224]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 16
+    env:
+      E12C3_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c3-source-model-before-16-worker-originals
+          path: evidence/e12c3-preworker
+      - name: Match previously verified E12B/C2 CryptoMiniSat and CaDiCaL195 versions
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Run EXACT 4 presentations x 5 frozen comparison methods x 2 cold repeats on this original source VM
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c3_partial_mask_falsification.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e12c3-preworker/SOURCE_LOCK.json
+          --out evidence/e12c3-workers
+      - name: Preserve all original 40 SAT/CPU UNKNOWN/negative cold source-matched outcomes without cherry-picking
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c3-original-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e12c3-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+  independent-same-admin-full-original-CNF-proof-auditor:
+    if: always()
+    needs: [preworker-source-model-SHA-and-exhaustive-ablated-masks, original-ablation-model-verified-matrix]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c3-source-model-before-16-worker-originals
+          path: evidence/e12c3-preworker
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e12c3-original-worker-*
+          path: evidence/e12c3-workers
+          merge-multiple: true
+      - name: Verify exactly 16 unique original hosted VMs, original/renamed model SHA, no missing mask false XOR, all 640 cold results
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12c3_audit.py
+          --receipts evidence/e12c3-workers
+          --source-lock evidence/e12c3-preworker/SOURCE_LOCK.json
+          --out evidence/e12c3-audit/AUDIT.json
+      - name: Retain same-administration strict original source proof audit for external rechecks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c3-same-admin-source-mask-640-audit
+          path: evidence/e12c3-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

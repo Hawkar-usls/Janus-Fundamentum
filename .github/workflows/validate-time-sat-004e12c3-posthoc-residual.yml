@@ -1,0 +1,42 @@
+name: JANUS TIME-SAT-004E12C3 POSTHOC SHA-source exact residual CNF conservation (NO new solver trials)
+on:
+  push:
+    branches: [research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12c3-posthoc-residual.yml
+      - experiments/time_sat_004_external/janus_time_sat_004e12c3_posthoc_clause_conservation.py
+permissions:
+  contents: write
+concurrency:
+  group: janus-time-sat-004e12c3-original-archive-posthoc-residual-conservation
+  cancel-in-progress: false
+jobs:
+  original-640-structure-audit-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently replay all 32 source representations against pre-worker SHA, exact original residual CNF multiset and 16 worker SHA receipts
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12c3_posthoc_clause_conservation.py
+          --out experiments/time_sat_004_external/time_sat_004e12c3_evidence/POSTHOC_EXACT_CLAUSE_CONSERVATION_32_VARIANTS_AND_640_OUTCOMES_20261102.json
+      - name: Preserve detailed structural negatives on research branch only; never label as preregistered original science
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12c3_evidence/POSTHOC_EXACT_CLAUSE_CONSERVATION_32_VARIANTS_AND_640_OUTCOMES_20261102.json
+          if git diff --cached --quiet; then
+            echo 'Original scientific posthoc already archived'
+          else
+            git commit -m 'audit(004E12C3): 32 exact original residual CNF conservation proofs, 640 source-child CPU/SAT outcomes'
+            git fetch origin research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102
+          fi
