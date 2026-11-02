@@ -1,0 +1,59 @@
+name: JANUS TIME-SAT-004E12C3 permanent original ZIP SHA 16VM and 640 source-proof outcomes
+on:
+  push:
+    branches: [research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102]
+    paths: [.github/workflows/archive-time-sat-004e12c3-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-e12c3-permanent-original-18-ZIP-archive-once
+  cancel-in-progress: false
+jobs:
+  original-source-CNF-and-mask-ablation-SHA-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Demand exact original scientific HEAD and 18/18 completed PASS, fail closed if original CI failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 120); do
+            json=$(curl -fsSL --retry 2 -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41497145652")
+            state=$(echo "${json}" | python -c "import json,sys;d=json.load(sys.stdin);assert d['head_sha']=='224496dad108a434464a52dc6a956fddbbc3a8fd';print(d['status']+' '+str(d['conclusion']))")
+            echo "Original frozen E12C3 science ${state}"
+            if [ "${state}" = 'completed success' ]; then exit 0; fi
+            if [[ "${state}" == completed\ * ]]; then
+              echo 'Original E12C3 scientific source job failed; cannot archive PASS' >&2
+              exit 1
+            fi
+            sleep 6
+          done
+          echo 'Original E12C3 science did not finish in bounded archive window' >&2
+          exit 1
+      - name: Independently download original 18 Github ZIP artifacts and revalidate all 640 original SAT/UNKNOWN, source-model checksum, and partial-mask proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e12c3_original.py
+          --out experiments/time_sat_004_external/time_sat_004e12c3_evidence
+      - name: Append exact original-source evidence to draft branch ONLY, never main/C023
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12c3_evidence
+          if git diff --cached --quiet; then
+            echo 'Original SHA-verified study archive already permanent'
+          else
+            git commit -m 'evidence(004E12C3): preserve original 18 ZIP SHA and 640 complete/partial-mask source model outcomes'
+            git push origin HEAD:refs/heads/research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102
+          fi
