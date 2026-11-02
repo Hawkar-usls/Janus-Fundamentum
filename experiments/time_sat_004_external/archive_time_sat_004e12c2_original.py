@@ -16,8 +16,8 @@ from janus_time_sat_004e12c2_audit import audit
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"direct"))
 import janus_time_sat_004e12c2_cost_aware as m
 REPO="Hawkar-usls/Janus-Fundamentum"
-RUN=41493989350
-HEAD="7113673e7a0def92fa1698c715977dfcf6a84e60"
+RUN=41494290465
+HEAD="4843551a192753e676a319aadc2e78644dc609c6"
 LOCK="sat-e12c2-source-lock-before-workers"
 AUDIT="sat-e12c2-original-research-audit"
 def hash_bytes(raw):return sha256(raw).hexdigest()
