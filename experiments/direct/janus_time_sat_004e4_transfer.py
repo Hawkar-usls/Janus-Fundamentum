@@ -197,7 +197,7 @@ def matrix_pair(family,variant,output):
       "github_run_id":os.getenv("GITHUB_RUN_ID","LOCAL"),
       "github_head":os.getenv("GITHUB_SHA","LOCAL"),
       "github_job":os.getenv("GITHUB_JOB","LOCAL"),
-      "runner_os":os.getenv("RUNNER_OS","LOCAL"),
+      "runner_os":os.getenv("SAT_004E4_PLATFORM","LOCAL"),
       "runner_name":os.getenv("RUNNER_NAME","LOCAL"),
       "runner_arch":os.getenv("RUNNER_ARCH","LOCAL"),
       "family":family,"variant":variant,
@@ -208,7 +208,7 @@ def matrix_pair(family,variant,output):
       "independent_004C_witness":"OPEN","production_C023":"UNCHANGED",
       "global_champion":"NOT_ESTABLISHED"}
     output.mkdir(parents=True,exist_ok=True)
-    (output/(family+"__"+variant+"__"+os.getenv("RUNNER_OS","LOCAL")+".json")).write_text(
+    (output/(family+"__"+variant+"__"+os.getenv("SAT_004E4_PLATFORM","LOCAL")+".json")).write_text(
         json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("004E4_VM_COMPLETE",family,variant,
           "SAT",sum(x["result"]["status"]==SAT for x in records),flush=True)
