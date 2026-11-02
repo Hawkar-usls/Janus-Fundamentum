@@ -1,0 +1,55 @@
+name: JANUS TIME-SAT-004E12C2 source-original 18 ZIP SHA archive and 576 trial audit
+on:
+  push:
+    branches: [research/time-sat-004e12c2-width6-no-raw-probe-20261102]
+    paths: [.github/workflows/archive-time-sat-004e12c2-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e12c2-exact-18-zip-once
+  cancel-in-progress: false
+jobs:
+  archive-exact-original-science:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Refuse until original exact frozen CI 41494290465 passes fully
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 90); do
+            result="$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41494290465 --jq '.status + ":" + (.conclusion // "pending")')"
+            if [ "$result" = completed:success ]; then break; fi
+            if [[ "$result" == completed:* ]]; then echo "Original source CI did not pass: $result"; exit 1; fi
+            sleep 6
+          done
+          test "$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41494290465 --jq '.status + ":" + (.conclusion // "pending")')" = completed:success
+      - name: SHA-verify every original GitHub ZIP and independently recompute immutable 576 cold child audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e12c2_original.py
+          --out experiments/time_sat_004_external/time_sat_004e12c2_evidence
+      - name: Save only on draft E12C2 research branch, never production
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e12c2-width6-no-raw-probe-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12c2_evidence
+          if git diff --cached --quiet; then
+            echo 'Original source evidence already retained'
+          else
+            git commit -m 'evidence(004E12C2): 18 original SHA-verified GitHub ZIPs, model locks, all 576 SAT/UNKNOWN child results'
+            git fetch origin research/time-sat-004e12c2-width6-no-raw-probe-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e12c2-width6-no-raw-probe-20261102
+          fi
