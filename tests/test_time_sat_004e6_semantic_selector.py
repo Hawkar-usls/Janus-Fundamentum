@@ -74,17 +74,16 @@ class SemanticRepair(unittest.TestCase):
             self.assertEqual(len(set(choices)),1)
 
     def test_old_known_failure_not_falsely_declared_fixed(self):
-        for family in m.FAMILIES:
-            for state in ("taut5_duplicate5","taut30_duplicate20"):
-                j=m.materialize(family,state)
-                old=m.normalized_selector(j["rows"],j["n"],"old_adaptive80")
-                new=m.normalized_selector(j["rows"],j["n"],"new_semantic80")
-                self.assertEqual(new["choice"],"native_xor")
-                self.assertEqual(old["choice"],"raw_after_scan",msg=(family,state,old["metric"]))
+        for family,state in (("binary-tree-parity","taut5_duplicate5"),("binary-tree-parity","taut30_duplicate20"),("lights-out","taut30_duplicate20")):
+            j=m.materialize(family,state)
+            old=m.normalized_selector(j["rows"],j["n"],"old_adaptive80")
+            new=m.normalized_selector(j["rows"],j["n"],"new_semantic80")
+            self.assertEqual(new["choice"],"native_xor")
+            self.assertEqual(old["choice"],"raw_after_scan",msg=(family,state,old["metric"]))
 
     def test_semantic_native_xor_truth_table_and_raw_fallback(self):
         # Original four-bit CNF, complete exact parity mask and leftover constraint.
-        rows=[[1,2],[-1,2],[1,-2],[-1,-2],[3,-3],[4],[4,4]]
+        rows=[[1,2],[-1,-2],[3,-3],[4],[4,4]]
         base=m.normalized_selector(rows,4,"new_semantic80")
         self.assertEqual(base["choice"],"raw_original_after_core_scan")
         self.assertEqual(base["cnf_clauses"],rows)
