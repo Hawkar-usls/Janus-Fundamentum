@@ -1,0 +1,55 @@
+name: JANUS TIME-SAT-004E12A archive exact source-equivalent 16 VM 288 cold original trials
+on:
+  push:
+    branches: [research/time-sat-004e12-clause-order-falsification-20261102]
+    paths: [.github/workflows/archive-time-sat-004e12a-original.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: janus-e12a-exact-original-source-SHA-one-shot-archive
+  cancel-in-progress: false
+jobs:
+  archive-SHA-pinned-originals:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Original frozen E12A source CI must have completed PASS on exact pinned head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 50); do
+            result="$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41475105837 --jq '.status + ":" + (.conclusion // "pending")')"
+            if [ "$result" = completed:success ]; then break; fi
+            if [[ "$result" == completed:* ]]; then echo "Original E12A science failed: $result"; exit 1; fi
+            sleep 5
+          done
+          test "$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41475105837 --jq '.status + ":" + (.conclusion // "pending")')" = completed:success
+      - name: Verify official SHA-256 of all 18 ZIPs, all original worker records and same-owner audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e12a_original.py
+          --out experiments/time_sat_004_external/time_sat_004e12a_evidence
+      - name: Append original 18 GitHub ZIP files, source SHA, all 288 outcomes only to research draft branch
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e12-clause-order-falsification-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12a_evidence
+          if git diff --cached --quiet; then
+            echo 'Original E12A source data already preserved'
+          else
+            git commit -m 'evidence(004E12A): exact original 16 VM 288 cold E11 clause order falsification and negative controls'
+            git fetch origin research/time-sat-004e12-clause-order-falsification-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e12-clause-order-falsification-20261102
+          fi
