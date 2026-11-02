@@ -1,0 +1,126 @@
+name: JANUS TIME-SAT-004E11 source-certified parity probe on 16 cloud VMs
+on:
+  push:
+    branches: [research/time-sat-004e11-prefix-parity-16vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e11-prefix-parity-16vm.yml
+      - experiments/direct/janus_time_sat_004e11_parity_probe.py
+      - experiments/time_sat_004_external/janus_time_sat_004e11_audit.py
+      - tests/test_time_sat_004e11_parity_probe.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-e11-one-frozen-16vm-224-paired-original-source-20261102
+  cancel-in-progress: false
+jobs:
+  preworker-freeze-three-internal-topologies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exhaustive sound toy source truth-tables; six original SAT source models; prereg frozen SHA; two known negative controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e11_parity_probe.py' -v
+      - name: Prior E10 unseen family controls still pass
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e10_ood.py' -v
+      - name: Original production C023 serialized verifier PASS
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Freeze all 8 source SHA-256 and complete planted SAT model SHA-256 BEFORE validation worker
+        run: >-
+          python experiments/direct/janus_time_sat_004e11_parity_probe.py
+          --preflight --out evidence/e11-preworker
+      - name: Preserve pre-worker exact source/model lock as separate original artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e11-original-source-lock-before-validation
+          path: evidence/e11-preworker/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+
+  compare-previous-and-new-gates:
+    needs: [preworker-freeze-three-internal-topologies]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case: [e11-torus-cross-16x16, e11-torus-cross-22x22, e11-circulant-5tap-n256, e11-circulant-5tap-n384, e11-diagonal-grid-14x14, e11-diagonal-grid-20x20, e10-exactone-t48, mixed-planted-xor-n224]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    env:
+      SAT_E11_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e11-original-source-lock-before-validation
+          path: evidence/e11-preworker
+      - name: Pin original same E8-E10 comparison solver binary dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Same-VM full-cold randomized 7 arms x 2 repeats including verified 192-clause XOR probe
+        run: >-
+          python experiments/direct/janus_time_sat_004e11_parity_probe.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e11-preworker/SOURCE_LOCK.json
+          --out evidence/e11-workers
+      - name: Preserve original 14 fresh subprocess source SAT, raw, new selector and censored outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e11-original-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e11-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  original-source-verified-audit:
+    needs: [preworker-freeze-three-internal-topologies, compare-previous-and-new-gates]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e11-original-source-lock-before-validation
+          path: evidence/e11-preworker
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e11-original-worker-*
+          path: evidence/e11-workers
+          merge-multiple: true
+      - name: Require original 16 unique cloud receipts, all 224 trials, exact original CNF/model SHA, completed-pairs only, no champion
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e11_audit.py
+          --receipts evidence/e11-workers
+          --source-lock evidence/e11-preworker/SOURCE_LOCK.json
+          --out evidence/e11-audit/AUDIT.json
+      - name: Preserve independent same-admin source+decision audit (not independent external scientific witness)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e11-original-audit
+          path: evidence/e11-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

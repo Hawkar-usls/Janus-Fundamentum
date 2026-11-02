@@ -1,0 +1,41 @@
+name: JANUS TIME-SAT-004E11 archive exact source-locked 16 VM and all 224 results
+on:
+  push:
+    branches: [research/time-sat-004e11-prefix-parity-16vm-20261102]
+    paths: [.github/workflows/archive-time-sat-004e11-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-e11-one-shot-original-224-child-18-zip-SHA-archive
+  cancel-in-progress: false
+jobs:
+  source-locked-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reverify exact original 18 Actions jobs, original source and models, 16 VM runner IDs, 18 ZIP SHA and all 224 outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e11_original.py
+          --out experiments/time_sat_004_external/time_sat_004e11_evidence
+      - name: Commit original SHA-pinned evidence to research branch ONLY
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e11-prefix-parity-16vm-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e11_evidence
+          if git diff --cached --quiet; then
+            echo 'Original E11 source archive already present'
+          else
+            git commit -m 'evidence(004E11): source-locked 18 original ZIPs 16 VM 224 parity-probe controls and all CPU unknowns'
+            git push origin HEAD:refs/heads/research/time-sat-004e11-prefix-parity-16vm-20261102
+          fi
