@@ -26,7 +26,7 @@ def fetch(path):
     q=Request("https://api.github.com"+path,headers={
         "Authorization":"Bearer "+os.environ["GH_TOKEN"],
         "Accept":"application/vnd.github+json",
-        "X-GitHub-Api-Version":"1618-11-28"})
+        "X-GitHub-Api-Version":"2022-11-28"})
     with urlopen(q,timeout=35) as r:return json.load(r)
 
 def archive(out):
