@@ -47,7 +47,7 @@ def archive(target):
     j=jobs["jobs"]
     if jobs["total_count"]!=18 or len(j)!=18 or any(x["conclusion"]!="success" for x in j):
         raise AssertionError("Expected preflight, 16 actual original VM jobs, independent auditor PASS")
-    workers=[x for x in j if x["name"].startswith("unmodified-E12A-vs-native-vs-raw (")]
+    workers=[x for x in j if x["name"].startswith("unmodified-E11-vs-native-vs-raw (")]
     if len(workers)!=16 or len({x["runner_id"] for x in workers})!=16 or any(
        not x.get("runner_id") for x in workers):
         raise AssertionError("Source platform is not 16 independently identifiable VMs")
