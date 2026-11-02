@@ -1,0 +1,146 @@
+{
+  "schema": "JANUS-TIME-SAT-004E9-FROZEN-COST-TO-OBSERVE-TRAIN-E8-VALIDATION-NEW-SEEDS-V1",
+  "date_utc": "2026-11-02",
+  "state": "FROZEN_BEFORE_004E9_CALIBRATION_AND_VALIDATION",
+  "parent_draft_PR": 606,
+  "parent_scientific_head": "c14904e7cd05714dcd959b32697e27383baac269",
+  "E8_archived_original_results": "experiments/time_sat_004_external/time_sat_004e8_evidence/original-worker-JSON",
+  "E8_scientific_run": 41454451078,
+  "E8_scientific_HEAD": "f58576a34f0f51bbeb99fd2d93e7bf160d2914f1",
+  "E8_frozen_manifest_git_blob": "220f9d867b2355523b134dc86fe816b74a177e5d",
+  "E8_training_case_ids": [
+    "public-lightsout-625",
+    "public-binary-tree-1023",
+    "planted-3sat-n96",
+    "planted-3sat-n160",
+    "planted-3sat-n224",
+    "mixed-planted-xor-n96",
+    "mixed-planted-xor-n160",
+    "mixed-planted-xor-n224"
+  ],
+  "training_protocol": {
+    "case_level_split_only": "Aggregate 2 OS x2 original cold repeats PER ORIGINAL SOURCE SHA; never treat these four correlated repeats as four independent training examples.",
+    "model_family": "deterministic nearest neighbor over cheap source-only 128-clause prefix widths plus log2(n), log2(m) and m/n, no performance outcome as inference-time feature",
+    "source_features": [
+      "log2_variables",
+      "log2_clauses",
+      "first128_clause_mean_width",
+      "first128_clause_width3_fraction",
+      "log2_clause_to_variable_ratio"
+    ],
+    "distance": "weighted normalized L1: dlogn +0.8*dlogm +1.5*d_width_mean +1*d_width3 +0.4*dlog(m/n)",
+    "selection": "Train XOR-worthwhile label only if (raw_CMS CPU-censored and native_all all 4 SAT) OR (all 4 raw/native pairs SAT and median(raw_full_cold/native_full_cold)>=1.20); otherwise RAW. During inference choose the nearest training source label only if distance<=1.75 and its class has >=1 comparable fully verified SAT outcome; else RAW.",
+    "candidate_policy_before_solving": "Parse source and verify SOURCE SHA, take at most 128 original CNF clauses for cheap fixed feature vector, compute exact nearest-neighbor distance against ORIGINAL archived E8 training model, skip the costly XOR scan when choosing RAW. If choosing XOR, call unchanged 004E6 source-proven native_all exact partition and charge all costs. No returned SAT labels used as selection inputs.",
+    "overfit_warning": "8 original TRAINING cases, including two known public; small calibration, distribution-specific and not representative of open SAT. Public regression instances are not heldout."
+  },
+  "validation_sources": [
+    {
+      "id": "public-lightsout-625",
+      "kind": "PUBLIC_PRESEEN_REGRESSION",
+      "training_overlap": true,
+      "source_sha256": "6be9bfe6b44454a061a2e93350f589643f8a16f5bca6babdaa50a2d3d7069361"
+    },
+    {
+      "id": "public-binary-tree-1023",
+      "kind": "PUBLIC_PRESEEN_REGRESSION",
+      "training_overlap": true,
+      "source_sha256": "8d94924bef8978b28a2bf95472556b280bef5d98b6833c6db33554098f52d2d8"
+    },
+    {
+      "id": "e9-planted-3sat-n128",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029001,
+      "n": 128,
+      "requested_3cnf": 512,
+      "expected_m": 512
+    },
+    {
+      "id": "e9-planted-3sat-n192",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029002,
+      "n": 192,
+      "requested_3cnf": 806,
+      "expected_m": 806
+    },
+    {
+      "id": "e9-planted-3sat-n256",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029003,
+      "n": 256,
+      "requested_3cnf": 1075,
+      "expected_m": 1075
+    },
+    {
+      "id": "e9-mixed-planted-xor-n128",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029101,
+      "n": 128,
+      "xor3_equations": 64,
+      "added_3cnf": 256,
+      "expected_m": 512
+    },
+    {
+      "id": "e9-mixed-planted-xor-n192",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029102,
+      "n": 192,
+      "xor3_equations": 96,
+      "added_3cnf": 384,
+      "expected_m": 768
+    },
+    {
+      "id": "e9-mixed-planted-xor-n256",
+      "kind": "NEW_SEED_SAME_INTERNAL_GENERATOR",
+      "seed": 202611029103,
+      "n": 256,
+      "xor3_equations": 128,
+      "added_3cnf": 512,
+      "expected_m": 1024
+    }
+  ],
+  "validation_budget": {
+    "ubuntu": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "cases": 8,
+    "original_GitHub_VM_jobs": 16,
+    "maximum_simultaneous_jobs": 8,
+    "methods": [
+      "cost_nearest",
+      "semantic80",
+      "native_all",
+      "raw_cms",
+      "cadical195_original"
+    ],
+    "repeats_per_method_each_VM": 2,
+    "cold_children": 160,
+    "CPU_soft_seconds": 12,
+    "CPU_hard_seconds": 13,
+    "wall_timeout_seconds": 16,
+    "virtual_memory_bytes": 2147483648,
+    "job_timeout_minutes": 7
+  },
+  "guards": {
+    "E8_training_sha_receipts_verified_by_frozen_source_auditor": true,
+    "model_JSON_saved_as_pinned_preflight_artifact_before_any_validation_job": true,
+    "model_never_retrained_with_004E9_outcomes": true,
+    "model_has_training_full_cold_time_and_feature_observation_cost": true,
+    "source_generator_seed_and_code_pinned_before_validation": true,
+    "preflight_generated_source_SHA_and_full_SAT_model_SHA_published_before_validation_runner_start": true,
+    "child_original_SHA_model_replay": true,
+    "source_XOR_full_equivalence_and_C023_verifier_pass": true,
+    "no_speedup_ratio_if_baseline_censored": true,
+    "no_global_champion_or_production_merge": true,
+    "negative_outcomes_preserved": true,
+    "original_training_cases_not_claimed_as_holdout": true,
+    "prior_same_internal_generator_new_seeds_not_independent_external": true,
+    "no_paid_Rowans": true,
+    "no_NAS_PC": true
+  },
+  "gate_004C_external": "OPEN",
+  "C023_main": "UNCHANGED",
+  "gate_004F": "NOT_READY",
+  "P_equals_NP": "NOT_PROVEN",
+  "append_only": true
+}
