@@ -1,0 +1,132 @@
+name: JANUS TIME-SAT-004E10 pretrained cost OOD test across 3 new generator families
+on:
+  push:
+    branches: [research/time-sat-004e10-ood-families-12vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e10-ood-12vm.yml
+      - experiments/direct/janus_time_sat_004e10_ood.py
+      - experiments/time_sat_004_external/janus_time_sat_004e10_audit.py
+      - tests/test_time_sat_004e10_ood.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004e10-immutable-e9-group-new-synthetic-only
+  cancel-in-progress: false
+jobs:
+  freeze-new-original-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independent source families, prior E9 immutable trained model and six original SAT full-model replay
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e10_ood.py' -v
+      - name: Previous original E9 no-data-leakage tests must remain PASS
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e9_cost_to_observe.py' -v
+      - name: Original C023 serialized independent proof checker unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Seal six new synthetic source SHA and complete model SHA before any worker starts
+        run: >-
+          python experiments/direct/janus_time_sat_004e10_ood.py
+          --preflight --out evidence/e10-source-precommit
+      - name: Preserve immutable pre-worker new source SHA lock and old E9 training-model identity
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e10-before-workers-source-lock
+          path: evidence/e10-source-precommit/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+
+  worker:
+    needs: [freeze-new-original-sources]
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case:
+          - e10-graph3color-v36
+          - e10-graph3color-v60
+          - e10-exactone-t28
+          - e10-exactone-t48
+          - e10-guarded-parity-n80
+          - e10-guarded-parity-n128
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    env:
+      SAT_004E10_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e10-before-workers-source-lock
+          path: evidence/e10-source-precommit
+      - name: Pin original reference solvers same as E8 and E9
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Six arms two repetitions each, same original source SHA, original E9 pretrained model SHA, cost included
+        run: >-
+          python experiments/direct/janus_time_sat_004e10_ood.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e10-source-precommit/SOURCE_LOCK.json
+          --out evidence/e10-original-workers
+      - name: Keep every original 12-child source-bound SAT or CPU-UNKNOWN receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e10-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e10-original-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  original-research-audit:
+    if: always()
+    needs: [freeze-new-original-sources, worker]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e10-before-workers-source-lock
+          path: evidence/e10-source-precommit
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e10-worker-*
+          path: evidence/e10-original-workers
+          merge-multiple: true
+      - name: Require exact 12 original workers, all 144 children, SHA source lock, no fake SAT or global champion
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e10_audit.py
+          --source-lock evidence/e10-source-precommit/SOURCE_LOCK.json
+          --receipts evidence/e10-original-workers
+          --out evidence/e10-original-audit/AUDIT.json
+      - name: Retain research-only original same-administration audit, not independent external witness
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e10-original-research-audit
+          path: evidence/e10-original-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

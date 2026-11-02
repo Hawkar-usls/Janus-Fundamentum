@@ -1,0 +1,144 @@
+{
+  "schema": "JANUS-TIME-SAT-004E10-FROZEN-NEW-GENERATOR-FAMILY-OOD-ABSTENTION-V1",
+  "date_utc": "2026-11-02",
+  "state": "PRECOMMITTED_BEFORE_004E10_SCIENCE",
+  "parent_E9_PR_608_head": "147aa3eb29ac3da51efe4e3c3320546336a1d021",
+  "original_frozen_E9_model_SHA256": "12280a2df2cceea69fd1890603d1795994939b84636d7da9efc231a6a7298397",
+  "original_frozen_E9_model_repo_path": "experiments/time_sat_004_external/time_sat_004e9_evidence/original-frozen-E8-model/MODEL.json",
+  "original_model_training_sources": "EXACT_PRIOR_E8_8_SOURCE_GROUPS_ONLY",
+  "new_source_generator_families": [
+    {
+      "family": "planted-graph-3color",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-graph3color-v36",
+      "seed": 202611021001,
+      "vertices": 36,
+      "edges": 108,
+      "n": 108
+    },
+    {
+      "family": "planted-graph-3color",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-graph3color-v60",
+      "seed": 202611021002,
+      "vertices": 60,
+      "edges": 180,
+      "n": 180
+    },
+    {
+      "family": "planted-exact-one-allocation",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-exactone-t28",
+      "seed": 202611021101,
+      "tasks": 28,
+      "choices": 5,
+      "n": 140
+    },
+    {
+      "family": "planted-exact-one-allocation",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-exactone-t48",
+      "seed": 202611021102,
+      "tasks": 48,
+      "choices": 5,
+      "n": 240
+    },
+    {
+      "family": "planted-guarded-width4-parity",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-guarded-parity-n80",
+      "seed": 202611021201,
+      "n": 80,
+      "width4_equations": 40,
+      "planted_3clauses": 160
+    },
+    {
+      "family": "planted-guarded-width4-parity",
+      "kind": "NEW_SYNTHETIC_GENERATOR_FAMILY",
+      "case": "e10-guarded-parity-n128",
+      "seed": 202611021202,
+      "n": 128,
+      "width4_equations": 64,
+      "planted_3clauses": 256
+    }
+  ],
+  "source_rules": {
+    "graph": "Plant one of 3 colors for each vertex; for each vertex require >=1 and <=1 assigned color; sample unique edges only between different planted colors; for each edge forbid same color at endpoints. Complete planted color assignment must satisfy every original CNF clause.",
+    "exactone": "Plant one of five time slots per task; each task has at least-one + all pairwise at-most-one clauses; add consecutive tasks distinct-slot forbidden-pair clauses where planted slot differs. Distinct from planted random3SAT and E8's width3 random XOR generator.",
+    "guarded_width4": "Plant n-bit assignment; sample distinct width4 XOR supports; encode each as all eight forbidden parity assignments (eight exact width4 source-CNF clauses). Add fixed count of unique 3-clauses satisfied by plant; width4 differs from E8 mixed width3 though related parity theme.",
+    "zero_unknown_source_models": true,
+    "all_source_seeds_public": true,
+    "no_external_unknown_sources": true,
+    "exact_DIMACS_SHA_and_planted_model_SHA": "computed deterministically by preflight before any worker starts, pinned in immutable model-bound source manifest artifact; no source replacement and no second seed search"
+  },
+  "frozen_ood_gate": {
+    "feature_basis": "original E9 first128 source-only five cheap features, no SAT results or generator labels",
+    "original_distance_formula": "original E9 weighted L1 distance",
+    "positive_label_requirements": "original E9 model: nearest group XOR and 4/4 previous verified native SAT; distance<=1.75",
+    "new_predeclared_extra_restrictions": "positive nearest-vs-negative training distance margin >=0.50, feature vector inside union axis-aligned E8 training min/max plus fixed 0.25 tolerance each dimension; otherwise SKIP_SCAN_RAW",
+    "distmax": 1.75,
+    "positive_negative_margin_min": 0.5,
+    "feature_training_minmax_tolerance": 0.25,
+    "threshold_status": "RESEARCH_UNCALIBRATED_NO_EXPERIMENT_ADAPTATION",
+    "no_use_of_new_source_family_metadata_in_prediction": true,
+    "cost_of_fingerprint_included_in_full_cold_wall": true,
+    "exact_original_source_XOR_equivalence_or_raw_fallback": true
+  },
+  "fixed_arms": [
+    "e9_cost_nearest",
+    "e10_ood_abstain",
+    "semantic80",
+    "native_all",
+    "raw_cms",
+    "cadical195_original"
+  ],
+  "budgets": {
+    "original_workers": 12,
+    "host_images": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "max_parallel": 6,
+    "per_host_sources": 6,
+    "cold_repeats_each_arm_per_worker": 2,
+    "total_children": 144,
+    "CPU_soft_s": 12,
+    "CPU_hard_s": 13,
+    "wall_timeout_s": 16,
+    "RLIMIT_AS_bytes": 2147483648,
+    "job_timeout_minutes": 7,
+    "source_order_seed": 202611021310,
+    "solvers": [
+      "pycryptosat==5.15.0",
+      "python-sat==1.9.dev17"
+    ],
+    "GitHub_public_standard_VM_only": true,
+    "no_paid_Rowan": true,
+    "no_owner_NAS_PC": true
+  },
+  "validation": {
+    "source_groups_independent_count": 6,
+    "distinct_generator_families": 3,
+    "all_original_full_models_known_and_checked_before_solve": true,
+    "all_returned_SAT_models_checked_on_original_CNF": true,
+    "any_solver_UNSAT_on_known_SAT": "FAIL_CLOSED",
+    "all_original_12_worker_144_children_required": true,
+    "CPU_or_wall_timeout": "UNKNOWN_UNSOLVED_NOT_UNSAT",
+    "strong_baselines": "raw original CMS and CaDiCaL195",
+    "complete_pair_ratios": "Only same-host same-source both verified SAT; never compute censored ratio",
+    "grouped_uncertainty": "Family-level, only 3 families with 2 planted sources each; underpowered; no population 95pct bound claims",
+    "OOD_detection": "descriptive number abstained, near-positive and unknown errors; no posthoc parameter change",
+    "external_custodian": "NONE",
+    "external_blinded_originals": 0,
+    "falsification": "abstention can yield no positive admissions or no net improvement; record zero",
+    "automatic_champion_promotion": false,
+    "production_main_C023": "UNCHANGED"
+  },
+  "scientific_gates": {
+    "004C": "OPEN",
+    "004D": "PARTIAL",
+    "004E": "PARTIAL_INTERNAL_FAMILY_SPLIT_ONLY",
+    "004F": "NOT_READY"
+  },
+  "append_only": true
+}
