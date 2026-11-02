@@ -124,6 +124,7 @@ def create_key(private_path,identity_path,issuer):
     from cryptography.hazmat.primitives.serialization import Encoding,PrivateFormat,NoEncryption,PublicFormat
     if not issuer or issuer.strip()!=issuer:
         raise ValueError("Stable independently identified issuer ID is required")
+    private_path.parent.mkdir(parents=True,exist_ok=True)
     private_not_in_git_worktree(private_path)
     refuse_same_path([private_path,identity_path])
     if private_path.exists() or identity_path.exists():
