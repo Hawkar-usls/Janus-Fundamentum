@@ -87,13 +87,16 @@ class SourceCertificates(unittest.TestCase):
         used=idx["source_clause_indices"]
         self.assertEqual(len([row for i,row in enumerate(f) if i not in used]),1)
 
-    def test_extra_opposite_mask_remains_as_original_residual(self):
+    def test_extra_opposite_mask_blocks_entire_certificate_fail_closed(self):
         full=[[v if b==0 else -v for v,b in enumerate(bits,1)]
               for bits in itertools.product((0,1),repeat=5) if sum(bits)%2==1]
         full.append([1,2,3,4,5])  # opposite parity: not part of XOR block
         indexed=m.certified_support_index(full,5)
-        self.assertEqual(indexed["source_complete_equation_count"],1)
-        self.assertNotIn(len(full)-1,indexed["source_clause_indices"])
+        self.assertEqual(indexed["source_complete_equation_count"],0)
+        self.assertEqual(indexed["source_clause_indices"],set())
+        fallback=m.policy(full,5,"e12b_support_index")
+        self.assertEqual(fallback["cnf_clauses"],full)
+        self.assertEqual(fallback["decision"]["choice"],"RAW")
 
     def test_width_four_negative_and_width_three_negatives_never_promoted(self):
         for case in m.IDS[4:]:
@@ -108,6 +111,6 @@ class SourceCertificates(unittest.TestCase):
 
     def test_refuse_posthoc_arm_or_source(self):
         with self.assertRaises(AssertionError):m.source("unknown")
-        with self.assertRaises(AssertionError):m.policy([[1]],1,"new_optimal_posthoc",None)
+        with self.assertRaises(AssertionError):m.policy([[1]],1,"new_optimal_posthoc")
 
 if __name__=="__main__":unittest.main()
