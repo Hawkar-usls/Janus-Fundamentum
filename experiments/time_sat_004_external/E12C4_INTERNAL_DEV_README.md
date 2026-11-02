@@ -14,7 +14,7 @@ Parents: [E12C3 draft #621](https://github.com/Hawkar-usls/Janus-Fundamentum/pul
 
 ## Explicit exclusions
 
-**No E12C4 timed held-out experiment has been run and no executable preregistration has been accepted.** Held-out sources are internal and are not externally blind. The prototype currently has **no fitted E12C3 development coefficients**, and therefore chooses RAW by default. This is intentional to avoid pretending a predictive model exists.
+**No E12C4 timed held-out experiment has been run and no executable preregistration has been accepted.** Held-out sources are internal and are not externally blind. The prototype currently has an **optional fitted model from all 16 publicly exposed E12C3 VM receipts**, and therefore chooses RAW by default. This is intentional to avoid pretending a predictive model exists.
 
 A future *separate* frozen execution PR must lock code Git SHA, both source and model SHA manifests, the development receipts and fitted coefficients, exact metric/aggregation, original-family split, budget (CPU12s/wall18s/AS2GiB/max6–8 VMs), independent UNSAT proof verification path, and the source-level statistical acceptance rule **before** the first held-out solve. It must retain every held-out case including timeouts and failed expectations. Do not select held-out seeds by checking their solver speed first.
 
@@ -25,6 +25,7 @@ Gates remain distinct: SOUNDNESS, RESULT_VERIFICATION, NET_PROFIT. A CI success 
 ```bash
 python -m unittest discover -s tests -p 'test_time_sat_004e12c4_profit_aware_dev.py' -v
 python experiments/direct/janus_time_sat_004e12c4_profit_aware_dev.py --write-cohort-lock evidence/e12c4-development/COHORT_LOCK.json
+python experiments/direct/janus_time_sat_004e12c4_profit_aware_dev.py --write-development-fit evidence/e12c4-development/DEV_FIT.json
 ```
 
 The generator does **not** invoke a SAT solver, upload any scientific benchmark results, access the user's PC/NAS, or spend Rowan credits. This branch does not change `main` or C023.
