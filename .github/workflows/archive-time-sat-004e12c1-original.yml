@@ -1,0 +1,59 @@
+name: JANUS TIME-SAT-004E12C1 permanently archive original 22 ZIP with 720 source-proven cold children
+on:
+  push:
+    branches: [research/time-sat-004e12c1-cost-aware-early-raw-20vm-20261102]
+    paths: [.github/workflows/archive-time-sat-004e12c1-original.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: janus-e12c1-original-22-zip-one-archive-20261102
+  cancel-in-progress: false
+jobs:
+  original-science-source-model-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Demand exact original scientific HEAD and completed SUCCESS; refuse failed or altered run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 100); do
+            json=$(curl -fsSL --retry 2 -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41486984611")
+            state=$(echo "${json}" | python -c "import json,sys;d=json.load(sys.stdin);assert d['head_sha']=='95bbfdfd91ce40040f169e48e48c6663d12fb4de';print(d['status']+' '+str(d['conclusion']))")
+            echo "Original E12C1 job ${state}"
+            if [ "${state}" = 'completed success' ]; then exit 0; fi
+            if [[ "${state}" == completed\ * ]]; then
+              echo 'Original E12C1 scientific CI failed; cannot archive as PASS' >&2
+              exit 1
+            fi
+            sleep 6
+          done
+          echo 'Original E12C1 scientific run not completed within bounded archive polling' >&2
+          exit 1
+      - name: Download exact original 22 GitHub ZIPs, verify source/model SHA, re-audit 20 VM and 720 children
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e12c1_original.py
+          --out experiments/time_sat_004_external/time_sat_004e12c1_evidence
+      - name: Permanently commit original exact source SHA and full positive-negative scientific outcomes to draft research branch ONLY
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e12c1-cost-aware-early-raw-20vm-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12c1_evidence
+          if git diff --cached --quiet; then
+            echo 'All original E12C1 source/model/cold evidence already archived'
+          else
+            git commit -m 'evidence(004E12C1): retain 22 original SHA-verifiable GitHub ZIPs and 720 source-model bound decisions'
+            git push origin HEAD:refs/heads/research/time-sat-004e12c1-cost-aware-early-raw-20vm-20261102
+          fi

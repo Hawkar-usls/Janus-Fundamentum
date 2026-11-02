@@ -1,0 +1,124 @@
+name: JANUS TIME-SAT-004E12C1 20 cloud VMs cost-aware source model 720 original cold paired
+on:
+  push:
+    branches: [research/time-sat-004e12c1-cost-aware-early-raw-20vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12c1-cost-aware-20vm.yml
+      - experiments/direct/janus_time_sat_004e12c1_cost_aware.py
+      - tests/test_time_sat_004e12c1_cost_aware.py
+      - experiments/time_sat_004_external/janus_time_sat_004e12c1_audit.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c1-one-study-source-frozen-sha-20vm
+  cancel-in-progress: false
+jobs:
+  freeze-before-C1-workers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen development E12C0 cost, all new source SAT models, 3-6 parity truth tables, exact original CNF permutations
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c1_cost_aware.py' -v
+      - name: Original E12B source-index regression and no SAT corruption
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12b_support_index.py' -v
+      - name: C023 production serialized verifier stays PASS
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Freeze 10 full source and 30 SAT-equivalent CNF SHA and complete SAT models, before FIRST worker measurement
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c1_cost_aware.py
+          --preflight --out evidence/e12c1-preworker-source-lock
+      - name: Publish immutable source-and-model lock before all original cloud worker measurements
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c1-source-model-sha-before-20workers
+          path: evidence/e12c1-preworker-source-lock/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+  six-arm-original-cold-worker-matrix:
+    needs: [freeze-before-C1-workers]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case: [e12c1-knight-grid-g13, e12c1-knight-grid-g17, e12c1-circulant-prime-n257, e12c1-circulant-prime-n331, e12c1-random-hypergraph-w5-n180, e12c1-random-hypergraph-w6-n160, e12c1-low-cover-w5-n180, e12c1-exactone-t30, e12c1-mixed-xor3-n160, e12c1-planted-3sat-n200]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      E12C1_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c1-source-model-sha-before-20workers
+          path: evidence/e12c1-preworker-source-lock
+      - name: Pin exact versions of prior E12B CryptoMiniSat and CaDiCaL195 baseline
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Original 3 CNF presentations x 6 frozen arms x 2 full-cold repeats including bounded raw base pilot
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c1_cost_aware.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e12c1-preworker-source-lock/SOURCE_LOCK.json
+          --out evidence/e12c1-workers
+      - name: Preserve all original SAT, raw probe, unknown CPU and failed-control results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c1-original-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e12c1-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+  independent-same-admin-source-sha-audit:
+    if: always()
+    needs: [freeze-before-C1-workers, six-arm-original-cold-worker-matrix]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12c1-source-model-sha-before-20workers
+          path: evidence/e12c1-preworker-source-lock
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e12c1-original-worker-*
+          path: evidence/e12c1-workers
+          merge-multiple: true
+      - name: Fail on wrong source/model checksum, missing 20 VM or missing 720 original fully-censored auditable children
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12c1_audit.py
+          --receipts evidence/e12c1-workers
+          --source-lock evidence/e12c1-preworker-source-lock/SOURCE_LOCK.json
+          --out evidence/e12c1-audit/AUDIT.json
+      - name: Retain independent same-admin audit but no external custodian claim
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12c1-same-admin-original-720-audit
+          path: evidence/e12c1-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
