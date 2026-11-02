@@ -133,7 +133,7 @@ def archive(target):
     (target/"SUMMARY.json").write_text(json.dumps(summary,sort_keys=True,indent=2)+"\n")
     print("004E12A_ARCHIVE_SOURCE_LOCK_PASS",json.dumps({
        "VMs":16,"peak":peak,"original_ZIPs":18,"children":288,
-       "status":rechecked["all_outcomes"]},sort_keys=True))
+       "status":rechecked["original_verdict_counts"]},sort_keys=True))
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
