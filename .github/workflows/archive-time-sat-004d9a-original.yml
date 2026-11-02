@@ -1,0 +1,53 @@
+name: JANUS TIME-SAT-004D9A preserve original offline-kit synthetic evidence
+on:
+  push:
+    branches: [research/time-sat-004d9a-custodian-offline-kit-20261102]
+    paths: [.github/workflows/archive-time-sat-004d9a-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004d9a-original-one-shot
+  cancel-in-progress: false
+jobs:
+  preserve-original-offline-kit-negative-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download exact original CI 004D9A artifacts by frozen IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/time-sat-004d9a
+          for pair in '13123179951 ubuntu22' '13123323558 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/time-sat-004d9a/${2}.zip"
+          done
+      - name: Verify both source CI ZIP SHA and waiting-for-witness claim
+        run: >-
+          python3 experiments/time_sat_004_external/archive_time_sat_004d9a_original.py
+          --zip22 /tmp/time-sat-004d9a/ubuntu22.zip
+          --zip24 /tmp/time-sat-004d9a/ubuntu24.zip
+          --out experiments/time_sat_004_external/time_sat_004d9a_evidence
+      - name: Commit strictly synthetic-only evidence to research branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004d9a-custodian-offline-kit-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004d9a_evidence
+          if git diff --cached --quiet; then
+            echo 'Original synthetic-only CI already archived'
+          else
+            git commit -m 'evidence(004D9A): original 2-Ubuntu offline signer protocol, zero external data'
+            git push origin HEAD:refs/heads/research/time-sat-004d9a-custodian-offline-kit-20261102
+          fi
