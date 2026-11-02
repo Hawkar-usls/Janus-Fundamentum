@@ -1,0 +1,107 @@
+name: JANUS TIME-SAT-004E5 · 24 VM metamorphic XOR gate robustness test
+on:
+  push:
+    branches: [research/time-sat-004e5-metamorphic-threshold-stress-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e5-metamorphic-24vm.yml
+      - experiments/direct/janus_time_sat_004e5_metamorphic.py
+      - experiments/time_sat_004_external/janus_time_sat_004e5_audit.py
+      - tests/test_time_sat_004e5_metamorphic.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-004e5-24vm-metamorphic-SAT-equivalence-20261102
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Immutable source SAT models, bijections, tautology and gate falsification tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e5_metamorphic.py' -v
+      - name: Production C023 independent serialized checker unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  challenger:
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        family: [lights-out, binary-tree-parity]
+        pad: [0, 5, 30]
+        variant: [native_all, adaptive_80]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    env:
+      SAT_004E5_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pinned original native-XOR solver all workers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0'
+      - name: Frozen, model-replayed metamorphic transformed CNF and paired original CMS baseline on same ephemeral VM
+        run: >-
+          python experiments/direct/janus_time_sat_004e5_metamorphic.py
+          --family '${{ matrix.family }}'
+          --padding '${{ matrix.pad }}'
+          --variant '${{ matrix.variant }}'
+          --out evidence/004e5
+      - name: Keep all two-case SAT and timeout evidence even on job failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e5-${{ matrix.os }}-${{ matrix.family }}-pad${{ matrix.pad }}-${{ matrix.variant }}
+          path: evidence/004e5/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  audit:
+    if: always()
+    needs: [preflight, challenger]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e5-*
+          path: evidence/004e5
+          merge-multiple: true
+      - name: Rebuild exact source transforms and audit all 24 jobs and 96 original SAT/CPU child records
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e5_audit.py
+          --in-dir evidence/004e5
+          --out evidence/004e5-audit/AUDIT.json
+      - name: Preserve audit original result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e5-audit
+          path: evidence/004e5-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
