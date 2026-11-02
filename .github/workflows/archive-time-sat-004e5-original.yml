@@ -1,0 +1,41 @@
+name: JANUS TIME-SAT-004E5 permanently preserve 24 original metamorphic VM outcomes
+on:
+  push:
+    branches: [research/time-sat-004e5-metamorphic-threshold-stress-20261102]
+    paths: [.github/workflows/archive-time-sat-004e5-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004e5-original-24vm-one-time-archive
+  cancel-in-progress: false
+jobs:
+  archive-original-receipts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay exactly 24 VM original ZIP SHA and 96 source-transformed SAT outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e5_original.py
+          --out experiments/time_sat_004_external/time_sat_004e5_evidence
+      - name: Permanently save original 25 ZIPs and independent audit in research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e5-metamorphic-threshold-stress-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e5_evidence
+          if git diff --cached --quiet; then
+            echo 'Source-pinned original 004E5 archive already durable'
+          else
+            git commit -m 'evidence(TIME-SAT-004E5): preserve 24 source-verified VMs, 96 SAT/CPU outcomes, original SHA-256 ZIPs'
+            git push origin HEAD:refs/heads/research/time-sat-004e5-metamorphic-threshold-stress-20261102
+          fi
