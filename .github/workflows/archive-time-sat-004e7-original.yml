@@ -1,0 +1,41 @@
+name: JANUS TIME-SAT-004E7 source-locked original 20 VM negative-result archive
+on:
+  push:
+    branches: [research/time-sat-004e7-other-five-families-20vm-20261102]
+    paths: [.github/workflows/archive-time-sat-004e7-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004e7-original-one-time-20vm-archive
+  cancel-in-progress: false
+jobs:
+  preserve-all-original-worker-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact original 22 GitHub Actions jobs, 20 unique original runner IDs, 21 ZIP SHA and all 200 censored outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e7_original.py
+          --out experiments/time_sat_004_external/time_sat_004e7_evidence
+      - name: Save ONLY in research draft branch, preserving actual negative evidence
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e7-other-five-families-20vm-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e7_evidence
+          if git diff --cached --quiet; then
+            echo 'E7 source-locked original results already archived'
+          else
+            git commit -m 'evidence(004E7): preserve source-certified 20 VM and all 200 CPU-censored five-family cross-checks'
+            git push origin HEAD:refs/heads/research/time-sat-004e7-other-five-families-20vm-20261102
+          fi
