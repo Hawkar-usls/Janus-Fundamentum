@@ -387,9 +387,9 @@ def main():
         fitted = fit_archived_e12c3()
         path = args.write_development_fit
         path.parent.mkdir(parents=True, exist_ok=True)
-        payload = (json.dumps(fitted, indent=2, sort_keys=True) + "\\n").encode()
+        payload = (json.dumps(fitted, indent=2, sort_keys=True) + "\n").encode()
         path.write_bytes(payload)
-        path.with_suffix(".sha256").write_text(digest(payload) + "  " + path.name + "\\n")
+        path.with_suffix(".sha256").write_text(digest(payload) + "  " + path.name + "\n")
         print("E12C4_EXPOSED_C3_DEV_FIT_NOT_HOLDOUT", digest(payload))
     else:
         ap.error("Choose a development-only output, not a timed holdout")
