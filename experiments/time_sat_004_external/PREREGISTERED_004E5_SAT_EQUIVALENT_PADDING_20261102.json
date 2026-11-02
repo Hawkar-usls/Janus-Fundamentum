@@ -1,0 +1,95 @@
+{
+  "schema": "JANUS-TIME-SAT-004E5-METAMORPHIC-PADDED-THRESHOLD-STRESS-V1",
+  "date_utc": "2026-11-02",
+  "status": "FROZEN_BEFORE_ORIGINAL_METAMORPHIC_BENCHMARK",
+  "parent_draft_PR": 601,
+  "parent_source_commit": "399b9f6e18f7f46da3b78330d0adb6c30a51cc28",
+  "research_question": "Is 004E2 adaptive 80%-of-original-clauses XOR coverage unstable under logically irrelevant tautology padding and SAT-preserving variable/permutation/polarity changes? Test full cold end-to-end cost against direct source XOR and raw native CryptoMiniSat. The resulting instances are NOT independent unseen problems.",
+  "source_originals": [
+    {
+      "family": "lights-out",
+      "sha256": "6be9bfe6b44454a061a2e93350f589643f8a16f5bca6babdaa50a2d3d7069361",
+      "n": 625,
+      "m": 9216,
+      "known_complete_SAT_model": "experiments/time_sat_004_external/time_sat_004d8_evidence/original-ubuntu22-lights-out.result.json",
+      "original_source": "experiments/time_sat_004_external/time_sat_004d8_evidence/lights-out.original.cnf"
+    },
+    {
+      "family": "binary-tree-parity",
+      "sha256": "8d94924bef8978b28a2bf95472556b280bef5d98b6833c6db33554098f52d2d8",
+      "n": 1023,
+      "m": 4088,
+      "known_complete_SAT_model": "experiments/time_sat_004_external/time_sat_004d4b_evidence/binary-tree-parity-SAT-original-model.json",
+      "original_source": "experiments/time_sat_004_external/time_sat_004d4b_evidence/7db30d12cb06f0dc2f30abff80d96d6a.original.cnf"
+    }
+  ],
+  "metamorphic_rewrite": {
+    "algorithm": "Deterministically seeded bijection of variable IDs; independently flip every variable's polarity and transform known full source SAT assignment accordingly; permute clause and literal order; append ceil(pad_pct*m/100) tautology clauses (v OR NOT v) with seeded variables; encode deterministic strict DIMACS. All transformations preserve satisfiability and model bijection.",
+    "seed": 20261102085,
+    "padding_percent_integer": [
+      0,
+      5,
+      30
+    ],
+    "no_new_constraints_or_removed_original_source_clauses": true,
+    "new_holdout_families": 0,
+    "metamorphic_formula_family_count": 6,
+    "expected_coverage_behavior": "binary-tree ~83.9% original XOR, 5% pad drops below 80%; Lights-out 100% original XOR, 30% pad drops below 80%. Must report observed extractor counts, never assume result."
+  },
+  "matrix": {
+    "os": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "family": [
+      "lights-out",
+      "binary-tree-parity"
+    ],
+    "padding_percent": [
+      0,
+      5,
+      30
+    ],
+    "candidate": [
+      "native_all",
+      "adaptive_80"
+    ],
+    "jobs": 24,
+    "max_parallel": 20,
+    "independent_GitHub_Actions_worker_jobs_expected": 24,
+    "one_same_VM_raw_original_CMS_control_each_candidate": true,
+    "paired_repeats_per_worker": 2,
+    "child_per_worker": 4,
+    "total_cold_child_processes": 96,
+    "CPU_soft_s": 6,
+    "CPU_hard_s": 7,
+    "WALL_timeout_s": 10,
+    "RLIMIT_AS_bytes": 2147483648,
+    "Python_version": "3.12",
+    "pycryptosat": "5.15.0",
+    "no_Rowan_paid": true,
+    "no_user_NAS_PC": true,
+    "retention_days": 7
+  },
+  "admission": {
+    "source_sha_model_check_before_transform": true,
+    "transformed_full_SAT_model_verified_before_solver": true,
+    "exact_same_transformed_CNF_SHA_for_candidate_and_raw_paired_children": true,
+    "source_verified_XOR_blocks_only": true,
+    "restore_unselected_source_clauses": true,
+    "verify_every_returned_model_on_generated_original_CNF": true,
+    "solver_UNSAT_on_verified_SAT_input": "INVALID_RUN",
+    "CPU_timeout": "UNKNOWN_NOT_UNSAT",
+    "no_speedup_ratio_if_baseline_or_candidate_censored": true,
+    "only_compare_same_runner_same_transformation": true,
+    "full_cold_time_includes_transform_and_structure_scan": true,
+    "independent_audit_requires_24_jobs_96_children": true,
+    "negative_results_preserved": true
+  },
+  "scientific_limit": "Perturbed copies of the same two already known SAT instances are METAMORPHIC/ROBUSTNESS cases, NOT novel samples or external blind held-out tasks. Any positive or negative findings are engineering diagnostics; no generalization, no production champion.",
+  "external_004C": "OPEN",
+  "gate_004E": "DEVELOPMENT_ONLY",
+  "gate_004F": "NOT_READY",
+  "C023_main": "UNCHANGED",
+  "append_only": true
+}
