@@ -1,0 +1,55 @@
+name: JANUS TIME-SAT-004E8 archive source-original 16 VMs and complete 160 cold pair evidence
+on:
+  push:
+    branches: [research/time-sat-004e8-sat-model-first-diverse-cost-20261102]
+    paths: [.github/workflows/archive-time-sat-004e8-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e8-original-research-archive-once
+  cancel-in-progress: false
+jobs:
+  permanent-original-source-preservation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wait only for pinned original 004E8 audit completion; fail unless SUCCESS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            result="$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41454451078 --jq '.status + ":" + (.conclusion // "pending")')"
+            if [ "$result" = completed:success ]; then break; fi
+            if [[ "$result" == completed:* ]]; then echo "Original frozen scientific run failed: $result"; exit 1; fi
+            sleep 5
+          done
+          test "$(gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41454451078 --jq '.status + ":" + (.conclusion // "pending")')" = completed:success
+      - name: Official GitHub ZIP SHA-256 verify plus original full 16 worker 160 child same-admin audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e8_original.py
+          --out experiments/time_sat_004_external/time_sat_004e8_evidence
+      - name: Append exact original 17 ZIPs, 16 receipts and original same-admin audit on DRAFT branch only
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e8-sat-model-first-diverse-cost-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e8_evidence
+          if git diff --cached --quiet; then
+            echo 'Original research evidence already persisted; no duplicate'
+          else
+            git commit -m 'evidence(004E8): preserve SHA-original 16 VMs, 160 cold child outcomes, no hidden holdout'
+            git fetch origin research/time-sat-004e8-sat-model-first-diverse-cost-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e8-sat-model-first-diverse-cost-20261102
+          fi
