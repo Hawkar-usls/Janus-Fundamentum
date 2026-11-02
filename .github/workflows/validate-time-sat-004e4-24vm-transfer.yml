@@ -1,0 +1,93 @@
+name: JANUS TIME-SAT-004E4 cross-development four-public-family 24-VM transfer
+on:
+  push:
+    branches: [research/time-sat-004e4-different-public-families-24vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e4-24vm-transfer.yml
+      - experiments/direct/janus_time_sat_004e4_transfer.py
+      - experiments/time_sat_004_external/janus_time_sat_004e4_research_audit.py
+      - tests/test_time_sat_004e4_transfer.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-004e4-original-24-VM-four-other-known-public-sources-20261102
+  cancel-in-progress: false
+jobs:
+  challenger:
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        family: [lights-out, or_randxor, greentao, p-center]
+        variant: [native_all, native_width3plus_only, adaptive_80]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    env:
+      SAT_004E4_PLATFORM: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fixed exact-original SHA and same pinned native solver for all workers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0'
+      - name: Precommitted original archived CNF SHA and 3-candidate truth-table controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e4_transfer.py' -v
+      - name: Original 004E3 fixed source-equivalent candidate adversarial tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e3_swarm.py' -v
+      - name: Original C023 serialized proof verifier must pass unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Two paired candidate vs raw original cold-process comparisons on ONE worker VM
+        run: >-
+          python experiments/direct/janus_time_sat_004e4_transfer.py
+          --family '${{ matrix.family }}'
+          --variant '${{ matrix.variant }}'
+          --out evidence/004e4
+      - name: Preserve all genuine original source hashes SAT-model proof and CPU-UNKNOWNs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e4-${{ matrix.os }}-${{ matrix.family }}-${{ matrix.variant }}
+          path: evidence/004e4/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  research-audit:
+    needs: [challenger]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e4-*
+          path: evidence/004e4
+          merge-multiple: true
+      - name: Require 24 exact source/candidate/host receipts and all 96 children; reject fake winners
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e4_research_audit.py
+          --evidence evidence/004e4
+          --out evidence/004e4-audit/AUDIT.json
+      - name: Retain unmodified all-result research-only aggregate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e4-research-audit
+          path: evidence/004e4-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
