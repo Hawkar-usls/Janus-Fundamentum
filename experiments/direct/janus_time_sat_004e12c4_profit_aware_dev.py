@@ -308,9 +308,72 @@ def cohort_manifest():
             "three_gates": ["SOUNDNESS", "RESULT_VERIFICATION", "NET_PROFIT"],
             "promotion": "PROHIBITED"}
 
+def fit_archived_e12c3():
+    """Consume *all* C3 source-group RAW/C2 pairs (exposed development evidence).
+
+    Only original SHA groups are samples. Every OS/representation/repeat counts
+    toward censoring but never becomes an additional independent observation.
+    Uses archived original receipts, not generated E12C4 holdout performance.
+    """
+    import janus_time_sat_004e12c3_partial_mask_falsification as c3
+    folder = ROOT / "time_sat_004e12c3_evidence" / "original-16-worker-JSON"
+    files = sorted(folder.glob("*.json"))
+    if len(files) != 16:
+        raise AssertionError("All 16 archived C3 VMs are required")
+    grouped = {}
+    for path in files:
+        j = json.loads(path.read_text())
+        if (j.get("prereg_Git_blob") != c3.BLOB or
+            j.get("original_os") not in c3.HOSTS or
+            j.get("original_CNF_SHA256") != c3.original(j["case"])["sha"]):
+            raise AssertionError("Untrusted C3 archive/source SHA mismatch")
+        key = (j["case"], j["original_os"])
+        if key in grouped:
+            raise AssertionError("Duplicate archived C3 VM")
+        pairs = {}
+        for record in j["records"]:
+            k = (record["variant"], record["repeat"])
+            if record["arm"] in ("raw_cms", "e12c2_certified_width5_6_no_probe"):
+                pairs.setdefault(k, {})[record["arm"]] = record
+        if len(pairs) != 8 or any(set(p) !=
+           {"raw_cms", "e12c2_certified_width5_6_no_probe"} for p in pairs.values()):
+            raise AssertionError("Missing C3 matched original source pairs")
+        grouped[key] = (j, pairs)
+    if set(grouped) != set(itertools.product(c3.IDS, c3.HOSTS)):
+        raise AssertionError("Original source or OS archive not exhaustive")
+    training = []
+    for case in c3.IDS:
+        source = c3.original(case)
+        idx = c1.source_index_all_widths(source["rows"], source["n"])
+        certified = [eq for eq in idx["equations"] if eq["width"] in (5, 6)]
+        f = features(source["rows"], source["n"], certified)
+        paired = []
+        for host in c3.HOSTS:
+            j, pairs = grouped[(case, host)]
+            if j["original_complete_model_SHA256"] != source["model_sha"]:
+                raise AssertionError("Original C3 model SHA drift")
+            for k in sorted(pairs):
+                raw = pairs[k]["raw_cms"]
+                xor = pairs[k]["e12c2_certified_width5_6_no_probe"]
+                def verified(x):
+                    o = x["outcome"]
+                    return (o["status"] == c3.SAT and
+                            o.get("full_original_CNF_complete_model_replay") == "PASS")
+                paired.append({
+                    "raw_status": "VERIFIED" if verified(raw) else "UNKNOWN",
+                    "xor_status": "VERIFIED" if verified(xor) else "UNKNOWN",
+                    "raw_s": raw["full_cold_child_wall_s"],
+                    "xor_s": xor["full_cold_child_wall_s"]})
+        training.append({"original_sha256": source["sha"],
+                         "features": f, "paired_full_cold": paired})
+    # No E12C4 new source appears in the old E12C3 experiment.
+    forbidden = {generate(f, s)["original_sha256"] for f, s in HOLDOUT}
+    return fit_development(training, forbidden_source_shas=forbidden)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write-cohort-lock", type=Path)
+    ap.add_argument("--write-development-fit", type=Path)
     args = ap.parse_args()
     if args.write_cohort_lock is not None:
         o = cohort_manifest()
@@ -320,8 +383,16 @@ def main():
         path.write_bytes(payload)
         path.with_suffix(".sha256").write_text(digest(payload) + "  " + path.name + "\n")
         print("E12C4_INTERNAL_COHORT_GENERATED_NOT_TIMED", digest(payload))
+    elif args.write_development_fit is not None:
+        fitted = fit_archived_e12c3()
+        path = args.write_development_fit
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = (json.dumps(fitted, indent=2, sort_keys=True) + "\\n").encode()
+        path.write_bytes(payload)
+        path.with_suffix(".sha256").write_text(digest(payload) + "  " + path.name + "\\n")
+        print("E12C4_EXPOSED_C3_DEV_FIT_NOT_HOLDOUT", digest(payload))
     else:
-        ap.error("Select --write-cohort-lock; no timed holdout runner is authorized")
+        ap.error("Choose a development-only output, not a timed holdout")
 
 if __name__ == "__main__":
     main()
