@@ -83,7 +83,7 @@ class SemanticRepair(unittest.TestCase):
 
     def test_semantic_native_xor_truth_table_and_raw_fallback(self):
         # Original four-bit CNF, complete exact parity mask and leftover constraint.
-        rows=[[1,2],[-1,-2],[3,-3],[4],[4,4]]
+        rows=[[1,2],[-1,-2],[3,-3],[2,3,4],[2,3,4]]
         base=m.normalized_selector(rows,4,"new_semantic80")
         self.assertEqual(base["choice"],"raw_original_after_core_scan")
         self.assertEqual(base["cnf_clauses"],rows)
