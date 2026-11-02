@@ -1,0 +1,41 @@
+name: JANUS TIME-SAT-004E9 archive 16 source-bound workers and E8-only trained model
+on:
+  push:
+    branches: [research/time-sat-004e9-frozen-cost-to-observe-20261102]
+    paths: [.github/workflows/archive-time-sat-004e9-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e9-once-original-160-outcomes-and-E8-model-archive
+  cancel-in-progress: false
+jobs:
+  source-locked-model-and-VM-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download original SHA-pinned Actions ZIPs including 8-source pretrained model and 16 worker results, recompute 160-child audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e9_original.py
+          --out experiments/time_sat_004_external/time_sat_004e9_evidence
+      - name: Commit only immutable original research artifacts to E9 draft branch, no production promotion
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e9-frozen-cost-to-observe-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e9_evidence
+          if git diff --cached --quiet; then
+            echo 'Original E9 source archive already present'
+          else
+            git commit -m 'evidence(004E9): permanent original E8-trained model, 16 VM and all 160 negative/positive outcomes'
+            git push origin HEAD:refs/heads/research/time-sat-004e9-frozen-cost-to-observe-20261102
+          fi

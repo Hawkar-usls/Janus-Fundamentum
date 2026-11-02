@@ -1,0 +1,125 @@
+name: JANUS TIME-SAT-004E9 · train frozen source-cost model then test 16 VMs
+on:
+  push:
+    branches: [research/time-sat-004e9-frozen-cost-to-observe-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e9-cost-to-observe-16vm.yml
+      - experiments/direct/janus_time_sat_004e9_cost_to_observe.py
+      - tests/test_time_sat_004e9_cost_to_observe.py
+      - experiments/time_sat_004_external/janus_time_sat_004e9_audit.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-e9-immutable-e8-train-new-seeds-test-16vm-20261102
+  cancel-in-progress: false
+jobs:
+  freeze-original-E8-training-before-E9-evaluation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify source E8 SHA and 8 case-level training groups, six deterministic new-seed SAT models and cost probe
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e9_cost_to_observe.py' -v
+      - name: Rerun old adversarial semantic XOR selector proof
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e6_semantic_selector.py' -v
+      - name: Production C023 serialized verifier stays unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Fit E9 selection labels ONLY from original E8 archives and freeze trained model/validation source SHAs
+        run: python experiments/direct/janus_time_sat_004e9_cost_to_observe.py --train --out evidence/004e9-preflight
+      - name: Pre-solve commit candidate model receipt and 8 known full SAT model source SHAs as immutable within-run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e9-frozen-before-validation-model
+          path: evidence/004e9-preflight/MODEL*
+          if-no-files-found: error
+          retention-days: 7
+
+  candidate-and-original-controls:
+    needs: [freeze-original-E8-training-before-E9-evaluation]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case: [public-lightsout-625, public-binary-tree-1023, e9-planted-3sat-n128, e9-planted-3sat-n192, e9-planted-3sat-n256, e9-mixed-planted-xor-n128, e9-mixed-planted-xor-n192, e9-mixed-planted-xor-n256]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    env:
+      SAT_004E9_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read ONLY precommitted E8-trained model and six new source SHA/model receipts
+        uses: actions/download-artifact@v4
+        with:
+          name: sat-e9-frozen-before-validation-model
+          path: evidence/004e9-model
+      - name: Pin exactly the same strong SAT solvers as original E8 across all challengers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Source-checked same-VM paired five-arm 2-repeat full cold process comparisons, cost of features counted
+        run: >-
+          python experiments/direct/janus_time_sat_004e9_cost_to_observe.py
+          --case '${{ matrix.case }}'
+          --model evidence/004e9-model/MODEL.json
+          --out evidence/004e9-workers
+      - name: Preserve all SAT/timeout/CPU cost worker receipts even on matrix failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e9-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/004e9-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  separate-source-and-inference-audit:
+    needs: [freeze-original-E8-training-before-E9-evaluation, candidate-and-original-controls]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e9-frozen-before-validation-model
+          path: evidence/004e9-model
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e9-worker-*
+          path: evidence/004e9-workers
+          merge-multiple: true
+      - name: Independently replay source SHA, trained-model SHA, all 16 hosts and 160 SAT/UNKNOWN outcomes
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e9_audit.py
+          --model evidence/004e9-model/MODEL.json
+          --receipts evidence/004e9-workers
+          --out evidence/004e9-audit/AUDIT.json
+      - name: Preserve complete original source and no-leakage validation audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e9-original-science-audit
+          path: evidence/004e9-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
