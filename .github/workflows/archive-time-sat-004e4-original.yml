@@ -1,0 +1,43 @@
+name: JANUS TIME-SAT-004E4 archive original verified 24 VMs, 96 paired cold children
+on:
+  push:
+    branches: [research/time-sat-004e4-different-public-families-24vm-20261102]
+    paths: [.github/workflows/archive-time-sat-004e4-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e4-source-locked-original-evidence-archive
+  cancel-in-progress: false
+jobs:
+  preserve-source-run-25-artifacts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify original source run finished SUCCESS and original 24 VM job timestamps and download all SHA-pinned ZIPs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e4_original.py
+          --out experiments/time_sat_004_external/time_sat_004e4_evidence
+      - name: Preserve all 25 original immutable ZIPs and 96 original source trial records without rewriting science
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e4-different-public-families-24vm-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e4_evidence
+          if git diff --cached --quiet; then
+            echo 'Original E4 evidence already preserved'
+          else
+            git commit -m 'evidence(004E4): original 24 runner VMs, 96 source-checked child trials, no global champion'
+            git fetch origin research/time-sat-004e4-different-public-families-24vm-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e4-different-public-families-24vm-20261102
+          fi
