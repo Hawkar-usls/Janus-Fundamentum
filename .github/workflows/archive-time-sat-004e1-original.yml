@@ -1,0 +1,55 @@
+name: JANUS TIME-SAT-004E1 preserve original two-worker full-cost evidence
+on:
+  push:
+    branches: [research/time-sat-004e1-binary-tree-full-cost-20261102]
+    paths: [.github/workflows/archive-time-sat-004e1-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004e1-original-cpu-censored-archive-once
+  cancel-in-progress: false
+jobs:
+  original-research-evidence-unchanged:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download EXACT original dual-worker Actions ZIP bytes by pinned artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-time-sat-004e1-original
+          for pair in '13127919019 ubuntu22' '13128451835 ubuntu24'; do
+            set -- ${pair}
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${1}/zip" \
+              -o "/tmp/janus-time-sat-004e1-original/${2}.zip"
+          done
+      - name: Full source and original two-worker response SHA replay; forbid finite ratio on censored controls
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e1_full_cost.py
+          --zip22 /tmp/janus-time-sat-004e1-original/ubuntu22.zip
+          --zip24 /tmp/janus-time-sat-004e1-original/ubuntu24.zip
+          --sha22 fd5e3c43271f01a232f59c8dbab9c3f321fefc4799e8b9619bf009df3ff8da68
+          --sha24 2671238a2ba77ad7e1a465f6ce0e8fa01dc5a6a667a7f6be02f2b39b150266c6
+          --out experiments/time_sat_004_external/time_sat_004e1_evidence
+      - name: Save original evidence only in 004E1 research branch
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = research/time-sat-004e1-binary-tree-full-cost-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e1_evidence
+          if git diff --cached --quiet; then
+            echo 'Original 004E1 evidence already archived'
+          else
+            git commit -m 'evidence(TIME-SAT-004E1): preserve exact original full-cost two-runner CPU-censored comparison'
+            git push origin HEAD:refs/heads/research/time-sat-004e1-binary-tree-full-cost-20261102
+          fi
