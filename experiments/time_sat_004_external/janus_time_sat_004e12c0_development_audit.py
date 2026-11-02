@@ -67,7 +67,7 @@ def audit(root=ROOT):
             raise AssertionError("Original GitHub worker JSON SHA mismatch "+path.name)
         case,os=path.stem.split("__")
         j=json.loads(buf)
-        if (j.get("schema")!="JANUS-TIME-SAT-004E12B-5-ARM-30-COLD-CHILD-ORIGINAL-VM-V1"
+        if (j.get("schema")!="JANUS-TIME-SAT-004E12B-30-FROZEN-COLD-COST-ORIGINAL-VM-V1"
             or j.get("case")!=case or j.get("original_os")!=os
             or str(j.get("original_run_id"))!=ORIGINAL_RUN
             or j.get("original_HEAD")!=ORIGINAL_SHA
