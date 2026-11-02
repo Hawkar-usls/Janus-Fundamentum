@@ -107,6 +107,16 @@ class E12C4InternalDevTests(unittest.TestCase):
             self.assertEqual(chosen["decision"], "RAW")
             self.assertEqual(chosen["cnf_clauses"], rows)
 
+    def test_all_exposed_c3_original_sha_dev_receipts_and_no_e12c4_holdout_leak(self):
+        fitted = e.fit_archived_e12c3()
+        profiles = fitted["profiles"]
+        self.assertEqual(len(profiles), 8)
+        self.assertEqual(len({p["original_sha256"] for p in profiles}), 8)
+        future = {e.generate(f,s)["original_sha256"] for f,s in e.HOLDOUT}
+        self.assertTrue(all(p["original_sha256"] not in future for p in profiles))
+        self.assertTrue(all(p["gain"] is None for p in profiles if p["censored"]))
+        self.assertEqual(fitted["promotion"], "PROHIBITED")
+
     def test_timeout_never_receives_finite_regret_and_unknown_unsat_is_not_verified(self):
         self.assertEqual(e.pair_result({"status": "UNKNOWN_CPU_LIMIT"},
                                        {"status": "SAT_VERIFIED"})["regret"], "INDETERMINATE")
