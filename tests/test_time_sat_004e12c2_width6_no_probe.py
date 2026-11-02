@@ -56,7 +56,7 @@ class E12C2NoRawProbe(unittest.TestCase):
         self.assertEqual(new["decision"]["choice"],"XOR")
         self.assertGreater(len(new["equations"]),0)
 
-    def test_preflight_source SHA_lock(self):
+    def test_preflight_source_SHA_lock(self):
         with TemporaryDirectory() as tmp:
             root=Path(tmp);a=e.preflight(root)
             b,dig=e.checked_lock(root/"SOURCE_LOCK.json")
