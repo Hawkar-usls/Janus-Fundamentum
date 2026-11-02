@@ -33,7 +33,7 @@ class SwarmChecks(unittest.TestCase):
         self.assertEqual(len(set(mod.VARIANTS)),6)
 
     def test_all_six_policies_keep_all_truth_assignments(self):
-        rows=masks((1,2),1)+masks((1,2,3),0)+[(4,)]
+        rows=masks((1,2),1)+masks((1,2,3),0)+[(4,-4)]
         # 2-bit and 3-bit complete XOR + original independent residual.
         for variant in mod.VARIANTS:
             x=mod.select_verified_xor(rows,4,variant)
@@ -45,7 +45,7 @@ class SwarmChecks(unittest.TestCase):
             self.assertEqual(x["converted_source_clauses"]+len(x["cnf_clauses"]),len(rows))
 
     def test_width_variants_are_meaningfully_different(self):
-        rows=masks((1,2),1)+masks((1,2,3),0)+[(4,)]
+        rows=masks((1,2),1)+masks((1,2,3),0)+[(4,-4)]
         small=mod.select_verified_xor(rows,4,"native_width2_only")
         wide=mod.select_verified_xor(rows,4,"native_width3plus_only")
         allx=mod.select_verified_xor(rows,4,"native_all")
@@ -56,7 +56,7 @@ class SwarmChecks(unittest.TestCase):
         self.assertEqual(len(mod.select_verified_xor(rows,4,"scan_noop_cms")["equations"]),0)
 
     def test_80_percent_gate_is_a_genuine_frozen_policy(self):
-        rows=masks((1,2),1)+[(3,),(-4,),(-3,4)]
+        rows=masks((1,2),1)+[(3,-3),(4,-4),(3,3)]
         gate=mod.select_verified_xor(rows,4,"adaptive_80")
         self.assertEqual(gate["equations"],[])
         self.assertEqual(len(gate["cnf_clauses"]),len(rows))
