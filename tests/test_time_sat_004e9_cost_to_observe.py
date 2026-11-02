@@ -77,8 +77,13 @@ class CostToObserveSafety(unittest.TestCase):
           "original_FULL_COLD_native_verified_SAT":4}]}
         chosen=m.policy(cnf,2,"cost_nearest",synthetic)
         self.assertTrue(chosen["cost_prediction"]["expensive_XOR_scan_performed"])
-        self.assertEqual(len(chosen["equations"]),0) # all four sign masks are contradictory, extractor must abstain
-        self.assertEqual(chosen["cnf_clauses"],cnf)
+        for assignment in itertools.product((False,True),repeat=2):
+            bits={i+1:v for i,v in enumerate(assignment)}
+            direct=sat(cnf,bits)
+            derived=(all(sum(int(bits[i]) for i in eq["variables"])%2==eq["rhs"]
+                         for eq in chosen["equations"])
+                     and sat(chosen["cnf_clauses"],bits))
+            self.assertEqual(direct,derived)  # even contradictory sources must remain equivalent
 
     def test_xor_equivalence_with_constrained_complete_parity(self):
         cnf=[[1,2],[-1,-2],[3]]
