@@ -1,0 +1,43 @@
+name: JANUS TIME-SAT-004E6 archive exact 12 original runner VMs and 96 cold children
+on:
+  push:
+    branches: [research/time-sat-004e6-semantic-normalized-selector-20261102]
+    paths: [.github/workflows/archive-time-sat-004e6-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e6-source-locked-exact-original-archive-one-shot
+  cancel-in-progress: false
+jobs:
+  preserve-complete-source-run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify original 14 GitHub jobs and 13 original ZIP artifact digests, recompute full 96-child audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e6_original.py
+          --out experiments/time_sat_004_external/time_sat_004e6_evidence
+      - name: Commit original ZIPs, original 12 worker JSONs and separate audit ONLY on research branch
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e6-semantic-normalized-selector-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e6_evidence
+          if git diff --cached --quiet; then
+            echo 'Original E6 full evidence already committed'
+          else
+            git commit -m 'evidence(004E6): permanent original 12-VM 96-child semantic selector comparison and failure guards'
+            git fetch origin research/time-sat-004e6-semantic-normalized-selector-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e6-semantic-normalized-selector-20261102
+          fi
