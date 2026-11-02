@@ -1,0 +1,59 @@
+name: JANUS TIME-SAT-004E12C0 replay original E12B source costs, risk and 24 timeouts
+on:
+  push:
+    branches: [research/time-sat-004e12c0-source-regret-cost-audit-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12c0-source-audit.yml
+      - experiments/time_sat_004_external/janus_time_sat_004e12c0_development_audit.py
+permissions:
+  contents: write
+concurrency:
+  group: janus-004e12c0-source-replay-only
+  cancel-in-progress: false
+jobs:
+  historical-source-anchored-cost-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay 20 SHA-authenticated original E12B workers, 600 statuses, 456 pairs, 24 original CPU unknown
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12c0_development_audit.py
+          --out experiments/time_sat_004_external/time_sat_004e12c0_evidence/DEVELOPMENT_SOURCE_COST_AUDIT.json
+      - name: Check original source-specific regret and exact n288 native solver decomposition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('experiments/time_sat_004_external/time_sat_004e12c0_evidence/DEVELOPMENT_SOURCE_COST_AUDIT.json')
+          x=json.loads(p.read_text())
+          assert (x['worker_VM'],x['cold_children'],x['source_SAT_verified'],x['CPU_UNKNOWN'],x['actual_completed_pairs'])==(20,600,576,24,456)
+          assert x['CPU_UNKNOWN_by_source']=={'e12b-torus-g14':12,'e12b-torus-g18':12}
+          assert x['CPU_UNKNOWN_by_arm']['e12b_support_index']==0
+          ratio=x['n288_raw_solver_original_over_global_shuffle_median']
+          assert 18 < ratio < 20,ratio
+          shuffled=x['n288_shuffled_raw_over_E12B']
+          assert shuffled['n']==4 and shuffled['min']<1<shuffled['max']
+          assert x['E12C_candidate']=='NOT_IMPLEMENTED'
+          print('004E12C0_DEVELOPMENT_REGRET_REPLAY_PASS',ratio)
+          PY
+      - name: Keep immutable original-hash research audit only on research branch, never main
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e12c0-source-regret-cost-audit-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12c0_evidence
+          if git diff --cached --quiet; then
+            echo 'Research-only development archive already present'
+          else
+            git commit -m 'science(004E12C0): preserve machine-replayed 600 source SHA cold regressions and 24 CPU unknown'
+            git fetch origin research/time-sat-004e12c0-source-regret-cost-audit-20261102
+            git rebase FETCH_HEAD
+            git push origin HEAD:refs/heads/research/time-sat-004e12c0-source-regret-cost-audit-20261102
+          fi
