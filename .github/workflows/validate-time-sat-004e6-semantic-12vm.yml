@@ -1,0 +1,108 @@
+name: JANUS TIME-SAT-004E6 semantic-core selector repair 12 worker same-VM four-arm challenge
+on:
+  push:
+    branches: [research/time-sat-004e6-semantic-normalized-selector-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e6-semantic-12vm.yml
+      - experiments/direct/janus_time_sat_004e6_semantic_selector.py
+      - experiments/time_sat_004_external/janus_time_sat_004e6_audit.py
+      - tests/test_time_sat_004e6_semantic_selector.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-004e6-exact-12vm-96-children-20261102
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen new semantic gate, equivalent CNF, exact original full model, and adverse tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e6_semantic_selector.py' -v
+      - name: Preserve original 004E5 adversarial tautology failure for old gate
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e5_metamorphic.py' -v
+      - name: Original independent C023 serialized checker stays unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  challenger:
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        family: [lights-out, binary-tree-parity]
+        state: [rename_only, taut5_duplicate5, taut30_duplicate20]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    env:
+      SAT_004E6_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Identical pinned original baseline and challenger solver
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0'
+      - name: Eight independent cold Python children per original VM, 2 repeats of four arms
+        run: >-
+          python experiments/direct/janus_time_sat_004e6_semantic_selector.py
+          --family '${{ matrix.family }}'
+          --state '${{ matrix.state }}'
+          --arm 'new_semantic80'
+          --out evidence/004e6
+      - name: Preserve complete source-locked original 8 per-worker outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e6-${{ matrix.os }}-${{ matrix.family }}-${{ matrix.state }}
+          path: evidence/004e6/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  research-audit:
+    if: always()
+    needs: [preflight, challenger]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e6-*
+          path: evidence/004e6
+          merge-multiple: true
+      - name: Refuse missing 12 worker receipts, wrong source-model SHA, or any unreported solver error
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e6_audit.py
+          --in-dir evidence/004e6
+          --out evidence/004e6-audit/AUDIT.json
+      - name: Retain exact same-admin research audit without false independent claim
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e6-research-audit
+          path: evidence/004e6-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

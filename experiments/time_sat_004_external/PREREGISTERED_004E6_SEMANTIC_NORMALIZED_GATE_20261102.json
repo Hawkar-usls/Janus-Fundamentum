@@ -1,0 +1,117 @@
+{
+  "schema": "JANUS-TIME-SAT-004E6-FROZEN-SEMANTIC-CLAUSE-NORMALIZED-REPAIR-V1",
+  "date_utc": "2026-11-02",
+  "state": "FROZEN_BEFORE_ANY_004E6_EXPERIMENT",
+  "parent_PR": 602,
+  "parent_tested_head": "676c995d22b994818b851003dbf996e7e29d07bc",
+  "parent_E5_policy_git_blob": "a417e339d2f1fa6214e43d8a3554191de0c51f77",
+  "research_scope": "Correct representation-instability of 80% XOR feature gate under tautologies, duplicate CNF clauses, duplicate literals, permutation and polarity rename, without changing CNF SAT semantics.",
+  "policy": {
+    "old": "Use unchanged E3 select_verified_xor(rows,n,'adaptive_80') on raw source, count denominator all original clauses.",
+    "new": "Build deterministic normalized CNF: within each clause remove repeated literals; if both polarities of a variable present, drop tautology; sort literals canonically; deduplicate identical canonical clauses; retain empty original clauses. Feed unique non-taut source core into unchanged exact-source XOR extractor. Choose XOR only if verified full XOR clause allocation and >=1 source equation and >=80% of NORMALIZED core clauses converted. Every removed raw original is proven tautology or same canonical clause; complete SAT model always replayed on FULL ORIGINAL source. On scan budget abstention or under threshold, fallback raw-original CMS with feature-scan cost paid.",
+    "mode": "canonical_exact_clause_dedup_and_tautology_elimination",
+    "strict_overflow": true,
+    "coverage_threshold": 0.8,
+    "expected_invariance": "new semantic-core coverage should be insensitive to any tautology padding, exact duplicate clauses and repeated literals; this is not invariance to arbitrary logically redundant derived clauses",
+    "invariant_obligations": [
+      "All surviving clauses logically equivalent as CNF to original source",
+      "Nontrivial residual constraints never discarded",
+      "All selected native XOR equations exact source mask semantics; unselected CNF retained",
+      "All original SAT models validated against original pre-normalization source",
+      "Reject malformed literals and illegal variable IDs",
+      "No claim of invariant to every SAT-equivalent CNF encoding",
+      "TIME-SAT-004E-004F no automatic champion"
+    ]
+  },
+  "source_origins": [
+    {
+      "family": "lights-out",
+      "CNF_SHA256": "6be9bfe6b44454a061a2e93350f589643f8a16f5bca6babdaa50a2d3d7069361",
+      "n": 625,
+      "m": 9216,
+      "source_known_complete_SAT_model": true
+    },
+    {
+      "family": "binary-tree-parity",
+      "CNF_SHA256": "8d94924bef8978b28a2bf95472556b280bef5d98b6833c6db33554098f52d2d8",
+      "n": 1023,
+      "m": 4088,
+      "source_known_complete_SAT_model": true
+    }
+  ],
+  "new_metamorphic_cohort": {
+    "seed": 20261102086,
+    "states": [
+      {
+        "name": "rename_only",
+        "tautology_percent": 0,
+        "duplicate_clause_percent": 0
+      },
+      {
+        "name": "taut5_duplicate5",
+        "tautology_percent": 5,
+        "duplicate_clause_percent": 5
+      },
+      {
+        "name": "taut30_duplicate20",
+        "tautology_percent": 30,
+        "duplicate_clause_percent": 20
+      }
+    ],
+    "procedure": "New deterministic variable-ID bijection, new per-variable polarity flips, new clause/literal order, then add ceil(tautology_percent*m/100) seeded tautological clauses and ceil(duplicate_clause_percent*m/100) shuffled/occasionally repeated-literal copies of existing original clauses; all additions preserve SAT and complete translated model. New seed distinct from 004E5 but all parents known to JANUS.",
+    "claimed_new_independent_SAT_sources": 0,
+    "model_first_replay": true,
+    "original_sha_and_transformed_sha_frozen_by_deterministic_regenerator": true
+  },
+  "comparison": {
+    "jobs": 12,
+    "os": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "source_families": [
+      "lights-out",
+      "binary-tree-parity"
+    ],
+    "metamorphic_states": [
+      "rename_only",
+      "taut5_duplicate5",
+      "taut30_duplicate20"
+    ],
+    "arms_on_each_VM": [
+      "old_adaptive80",
+      "new_semantic80",
+      "native_all",
+      "raw_cms"
+    ],
+    "repetitions_each_arm_on_same_VM": 2,
+    "total_children": 96,
+    "shuffled_order_seed": 20261102086,
+    "max_parallel": 12,
+    "CPU_soft_s": 6,
+    "CPU_hard_s": 7,
+    "WALL_timeout_s": 10,
+    "RLIMIT_AS_bytes": 2147483648,
+    "job_timeout_minutes": 4,
+    "total_full_cold_time": "Every child measures fresh Python import, exact archived original SHA check and source transforms, strict DIMACS reparse, optional structural scan and semantic normalization, solver setup, solution search, complete original-model replay; parent cold-subprocess wall.",
+    "fairness": "Four arms, two repetitions, all on exact same virtual machine and transformed source identity. Same host paired SAT-success timing ratios allowed only for TWO completed verified SAT outputs. Timeout UNKNOWN, not UNSAT. Do not compare ratios across Ubuntu or different derived CNF cases.",
+    "independent_scientific_witness": "NOT_ESTABLISHED"
+  },
+  "hard_gates": {
+    "preflight_adversarial_model_and_truth_table_tests": true,
+    "prior_E5_falsification_regression_must_stay": true,
+    "C023_serialized_verifier_PASS": true,
+    "require_all_12_worker_receipts_96_trials_with_no_wrong_models": true,
+    "negative_control": "old_adaptive80 must continue to show known failure on taut+duplicate padding (diagnostic), native_all remains upper reference",
+    "no_external_hidden_claim": true,
+    "no_posthoc_changes_to_frozen_score_or_corpus": true,
+    "no_automatic_production_merge": true,
+    "no_paid_Rowans": true,
+    "no_NAS_PC": true
+  },
+  "results": "NOT_RUN",
+  "status": "RESEARCH_ONLY_NOT_C023_MAIN",
+  "external_004C": "OPEN",
+  "production_004F": "NOT_READY",
+  "append_only": true
+}
