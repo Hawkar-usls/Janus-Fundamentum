@@ -1,0 +1,107 @@
+name: JANUS TIME-SAT-004E7 · five-other-public-families 20-VM cost-verified transfer
+on:
+  push:
+    branches: [research/time-sat-004e7-other-five-families-20vm-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e7-five-family-20vm.yml
+      - experiments/direct/janus_time_sat_004e7_transfer.py
+      - experiments/time_sat_004_external/janus_time_sat_004e7_audit.py
+      - tests/test_time_sat_004e7_transfer.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-e7-five-source-20-vm-once-20261102
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Five original SHA, SAT-equivalent tautology and duplicate transforms, no claims without models
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e7_transfer.py' -v
+      - name: Retain old E6 canonical semantic-core adversarial checks
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e6_semantic_selector.py' -v
+      - name: Read-only independent C023 serialized original proof checker
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  challenger:
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        family: [linear-equations, xor-shifting, minimum-disagreement-parity, or_randxor, greentao]
+        state: [unaltered, taut20_duplicate10]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      SAT_004E7_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin same CryptoMiniSat and strong CaDiCaL195 native baseline in each worker
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Five same-VM arms and two randomized repeats on exact one unchanged or logically duplicate-padded third-party source
+        run: >-
+          python experiments/direct/janus_time_sat_004e7_transfer.py
+          --family '${{ matrix.family }}'
+          --state '${{ matrix.state }}'
+          --out evidence/004e7
+      - name: Retain every old/new/native/raw/CaDiCaL SAT, solver-UNSAT-only, CPU timeout receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e7-${{ matrix.os }}-${{ matrix.family }}-${{ matrix.state }}
+          path: evidence/004e7/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  research-audit:
+    needs: [preflight, challenger]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e7-*
+          path: evidence/004e7
+          merge-multiple: true
+      - name: Fail-closed verify 20 original GitHub VM receipts, source SHA, transform SHA, 200 actual outcomes, costs and provenance
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e7_audit.py
+          --original-receipts evidence/004e7
+          --out evidence/004e7-audit/AUDIT.json
+      - name: Upload independent research audit including all negative and incomplete results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e7-independent-source-audit
+          path: evidence/004e7-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7
