@@ -1,0 +1,89 @@
+name: JANUS TIME-SAT-004E3 · 24 ephemeral challenger VMs + independent audit
+on:
+  push:
+    branches: [research/time-sat-004e3-demiurge-24-worker-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e3-24-worker-swarm.yml
+      - experiments/direct/janus_time_sat_004e3_swarm.py
+      - experiments/time_sat_004_external/janus_time_sat_004e3_independent_audit.py
+      - tests/test_time_sat_004e3_swarm.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-004e3-one-cohort-24-matrix-jobs-20261102
+  cancel-in-progress: false
+
+jobs:
+  challenger:
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        family: [linear-equations, xor-shifting, minimum-disagreement-parity, binary-tree-parity]
+        variant: [raw_cms, scan_noop_cms, native_all, native_width2_only, native_width3plus_only, adaptive_80]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact same pinned source SAT engine for all 24 challenger workers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0'
+      - name: Pure source-clause truth-table validity of six distinct challenger policies
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e3_swarm.py' -v
+      - name: Original independent C023 contract read-only
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: One original GitHub virtual machine per family-variant, two candidate-vs-raw same-host repeats
+        run: >-
+          python experiments/direct/janus_time_sat_004e3_swarm.py
+          --family "${{ matrix.family }}"
+          --variant "${{ matrix.variant }}"
+          --out evidence/004e3
+      - name: Preserve ALL source-verified children, CPU censoring and machine receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e3-${{ matrix.family }}-${{ matrix.variant }}
+          path: evidence/004e3/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  independent-research-audit:
+    needs: [challenger]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e3-*
+          path: evidence/004e3
+          merge-multiple: true
+      - name: Independent complete 24-VM 96-child original-source model and budget audit
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e3_independent_audit.py
+          --evidence evidence/004e3
+          --out evidence/004e3-audit/AUDIT.json
+      - name: Retain immutable negative evidence and development-only candidate ranking
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e3-aggregate-audit
+          path: evidence/004e3-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

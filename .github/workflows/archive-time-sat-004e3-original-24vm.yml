@@ -1,0 +1,41 @@
+name: JANUS TIME-SAT-004E3 archive verified 24 unique original ephemeral VMs
+on:
+  push:
+    branches: [research/time-sat-004e3-demiurge-24-worker-20261102]
+    paths: [.github/workflows/archive-time-sat-004e3-original-24vm.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-004e3-one-time-source-locked-archive-20261102
+  cancel-in-progress: false
+jobs:
+  permanent-original-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download and verify exactly 25 original ZIP artifacts and actual 24 runner job intervals
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e3_original.py
+          --out experiments/time_sat_004_external/time_sat_004e3_evidence
+      - name: Permanently preserve source ZIPs and immutable original audit on research branch only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e3-demiurge-24-worker-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e3_evidence
+          if git diff --cached --quiet; then
+            echo 'Original 004E3 evidence already archived'
+          else
+            git commit -m 'evidence(004E3): archive 24 original runners, 96 children, real peak concurrency and no promotion'
+            git push origin HEAD:refs/heads/research/time-sat-004e3-demiurge-24-worker-20261102
+          fi
