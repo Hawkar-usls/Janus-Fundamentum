@@ -87,11 +87,13 @@ class SourceCertificates(unittest.TestCase):
         used=idx["source_clause_indices"]
         self.assertEqual(len([row for i,row in enumerate(f) if i not in used]),1)
 
-    def test_conflicting_masks_do_not_create_false_xor(self):
+    def test_extra_opposite_mask_remains_as_original_residual(self):
         full=[[v if b==0 else -v for v,b in enumerate(bits,1)]
               for bits in itertools.product((0,1),repeat=5) if sum(bits)%2==1]
-        full.append([1,2,3,4,5])
-        self.assertEqual(m.certified_support_index(full,5)["source_complete_equation_count"],0)
+        full.append([1,2,3,4,5])  # opposite parity: not part of XOR block
+        indexed=m.certified_support_index(full,5)
+        self.assertEqual(indexed["source_complete_equation_count"],1)
+        self.assertNotIn(len(full)-1,indexed["source_clause_indices"])
 
     def test_width_four_negative_and_width_three_negatives_never_promoted(self):
         for case in m.IDS[4:]:
