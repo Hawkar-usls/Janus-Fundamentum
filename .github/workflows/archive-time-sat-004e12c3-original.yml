@@ -2,7 +2,9 @@ name: JANUS TIME-SAT-004E12C3 permanent original ZIP SHA 16VM and 640 source-pro
 on:
   push:
     branches: [research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102]
-    paths: [.github/workflows/archive-time-sat-004e12c3-original.yml]
+    paths:
+      - .github/workflows/archive-time-sat-004e12c3-original.yml
+      - experiments/time_sat_004_external/archive_time_sat_004e12c3_original.py
 permissions:
   contents: write
   actions: read
@@ -12,7 +14,7 @@ concurrency:
 jobs:
   original-source-CNF-and-mask-ablation-SHA-archive:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 38
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,7 +27,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for n in $(seq 1 120); do
+          for n in $(seq 1 300); do
             json=$(curl -fsSL --retry 2 -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41497145652")
             state=$(echo "${json}" | python -c "import json,sys;d=json.load(sys.stdin);assert d['head_sha']=='224496dad108a434464a52dc6a956fddbbc3a8fd';print(d['status']+' '+str(d['conclusion']))")
             echo "Original frozen E12C3 science ${state}"
@@ -55,5 +57,7 @@ jobs:
             echo 'Original SHA-verified study archive already permanent'
           else
             git commit -m 'evidence(004E12C3): preserve original 18 ZIP SHA and 640 complete/partial-mask source model outcomes'
+            git fetch origin research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102
+            git rebase FETCH_HEAD
             git push origin HEAD:refs/heads/research/time-sat-004e12c3-partial-mask-mixed-isomorphism-16vm-20261102
           fi
