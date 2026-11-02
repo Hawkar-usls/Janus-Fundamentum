@@ -1,0 +1,113 @@
+name: JANUS TIME-SAT-004E8 model-first cost 16-VM eight SAT-source five-arm evaluation
+on:
+  push:
+    branches: [research/time-sat-004e8-sat-model-first-diverse-cost-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e8-model-first-16vm.yml
+      - experiments/direct/janus_time_sat_004e8_model_first.py
+      - experiments/time_sat_004_external/janus_time_sat_004e8_audit.py
+      - tests/test_time_sat_004e8_model_first.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-004e8-fixed-8-source-160-cold-test-not-blind
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze source cases/limits and verify exact two archived public models and six planted models
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e8_model_first.py' -v
+      - name: Check previous semantic gate adversarial fail-closed regression
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e6_semantic_selector.py' -v
+      - name: Production serialized C023 independent verifier unchanged
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  worker:
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case:
+          - public-lightsout-625
+          - public-binary-tree-1023
+          - planted-3sat-n96
+          - planted-3sat-n160
+          - planted-3sat-n224
+          - mixed-planted-xor-n96
+          - mixed-planted-xor-n160
+          - mixed-planted-xor-n224
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    env:
+      SAT_004E8_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Same fixed native XOR and CDCL baselines on each worker VM
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: All five fixed methods two repeats from cold source-model-verified original CNF
+        run: >-
+          python experiments/direct/janus_time_sat_004e8_model_first.py
+          --case '${{ matrix.case }}'
+          --out evidence/004e8
+      - name: Preserve 10 all-outcome child receipts and parent original SHA on failure too
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e8-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/004e8/*.json
+          retention-days: 7
+          if-no-files-found: warn
+
+  research-audit:
+    needs: [preflight, worker]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-004e8-*
+          path: evidence/004e8
+          merge-multiple: true
+      - name: Fail closed on missing or non-original 16 VM and 160 SAT-known children
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e8_audit.py
+          --in-dir evidence/004e8
+          --out evidence/004e8-audit/AUDIT.json
+      - name: Keep exact original same-admin research audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-004e8-research-audit
+          path: evidence/004e8-audit/AUDIT.json
+          retention-days: 7
+          if-no-files-found: warn
