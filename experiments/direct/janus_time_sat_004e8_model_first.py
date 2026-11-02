@@ -116,15 +116,20 @@ def source(case_id):
         if (sha,n,len(rows))!=(case["source_sha256"],case["n"],case["m"]):
             raise AssertionError("Archived original competition source SHA or shape changed")
         provenance="PRESEEN_PUBLIC_COMPETITION_SOURCE"
+        path=(ROOT/"time_sat_004d8_evidence/lights-out.original.cnf" if public_family=="lights-out"
+              else ROOT/"time_sat_004d4b_evidence/7db30d12cb06f0dc2f30abff80d96d6a.original.cnf")
+        payload=path.read_bytes()
+        if sha256(payload).hexdigest()!=sha:raise AssertionError("Exact archived public CNF bytes SHA mismatch")
     elif case["kind"]=="SYNTHETIC_PLANTED_SAT":
         rows,n,model=synth(case)
         sha=sha256(cnf_bytes(n,rows)).hexdigest()
         provenance="OPEN_GENERATOR_PLANTED_SAT_NOT_EXTERNAL"
+        payload=cnf_bytes(n,rows)
     else:raise AssertionError("Unregistered SAT source class")
     if (len(model)!=n or {abs(x) for x in model}!=set(range(1,n+1))
         or not original_model_replay(rows,n,model)):
         raise AssertionError("Original pre-solve full SAT model is invalid")
-    payload=cnf_bytes(n,rows)
+    if sha256(payload).hexdigest()!=sha:raise AssertionError("Exact evaluated CNF SHA does not match payload")
     return {"id":case_id,"family":case["family"],"provenance":provenance,
             "n":n,"rows":rows,"m":len(rows),"sha":sha,"bytes":payload,
             "model":model,"model_sha":sha256(json.dumps(model).encode()).hexdigest(),
