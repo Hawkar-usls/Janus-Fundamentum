@@ -28,10 +28,14 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4_profit_aware_dev.py' -v
       - name: Write new internal original source SHA and transformed source manifest
         run: python experiments/direct/janus_time_sat_004e12c4_profit_aware_dev.py --write-cohort-lock evidence/e12c4-development/COHORT_LOCK.json
+      - name: Fit only E12C3 exposed SHA-grouped full-cold development receipts
+        run: python experiments/direct/janus_time_sat_004e12c4_profit_aware_dev.py --write-development-fit evidence/e12c4-development/DEV_FIT.json
       - name: Archive internal cohort SHA lock, not a scientific trial
         uses: actions/upload-artifact@v4
         with:
           name: sat-e12c4-internal-dev-cohort-lock-not-timed
-          path: evidence/e12c4-development/COHORT_LOCK.*
+          path: |
+            evidence/e12c4-development/COHORT_LOCK.*
+            evidence/e12c4-development/DEV_FIT.*
           retention-days: 7
           if-no-files-found: error
