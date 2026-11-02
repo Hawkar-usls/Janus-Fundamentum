@@ -1,0 +1,84 @@
+name: JANUS TIME-SAT-004E2 preserve original adaptive-gate two-host evidence
+on:
+  push:
+    branches: [research/time-sat-004e2-multifamily-gate-calibration-20261102]
+    paths: [.github/workflows/archive-time-sat-004e2-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-004e2-archive-original-once
+  cancel-in-progress: false
+jobs:
+  preserve-both-original-004e2-workers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Check original experimental run actually succeeded at frozen scientific HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41419535647 > /tmp/004e2-run.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/004e2-run.json'))
+          assert x['head_sha']=='78094eb08680916ac27f1e6bbe50a8ff44fab29c'
+          assert x['status']=='completed' and x['conclusion']=='success'
+          print('004E2_ORIGINAL_BOTH_WORKERS_SUCCESS_SHA_FROZEN')
+          PY
+      - name: Download the exact original two source CI Actions ZIPs and GitHub digests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/004e2-zip
+          gh api repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41419535647/artifacts > /tmp/004e2-artifacts.json
+          python3 - <<'PY'
+          import json,pathlib
+          obj=json.load(open('/tmp/004e2-artifacts.json'))
+          by={x['name']:x for x in obj['artifacts']}
+          out=pathlib.Path('/tmp/004e2-zip')
+          for host,name in [('ubuntu22','time-sat-004e2-ubuntu-22.04'),('ubuntu24','time-sat-004e2-ubuntu-24.04')]:
+              a=by[name]
+              digest=a['digest']
+              assert digest.startswith('sha256:') and len(digest)==71
+              (out/(host+'.id')).write_text(str(a['id']))
+              (out/(host+'.sha')).write_text(digest.split(':',1)[1])
+          PY
+          for host in ubuntu22 ubuntu24; do
+            aid="$(cat /tmp/004e2-zip/${host}.id)"
+            curl --fail --silent --show-error --retry 2 --location \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/artifacts/${aid}/zip" \
+              -o "/tmp/004e2-zip/${host}.zip"
+          done
+      - name: SHA-verify, inspect all 80 source CI outcomes, archive exact originals
+        run: |
+          set -euo pipefail
+          python3 experiments/time_sat_004_external/archive_time_sat_004e2_original.py \
+            --zip22 /tmp/004e2-zip/ubuntu22.zip \
+            --sha22 "$(cat /tmp/004e2-zip/ubuntu22.sha)" \
+            --id22 "$(cat /tmp/004e2-zip/ubuntu22.id)" \
+            --zip24 /tmp/004e2-zip/ubuntu24.zip \
+            --sha24 "$(cat /tmp/004e2-zip/ubuntu24.sha)" \
+            --id24 "$(cat /tmp/004e2-zip/ubuntu24.id)" \
+            --out experiments/time_sat_004_external/time_sat_004e2_evidence
+      - name: Commit research-only append-only original ZIP, JSON and summary
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = research/time-sat-004e2-multifamily-gate-calibration-20261102
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e2_evidence
+          if git diff --cached --quiet; then
+            echo 'Evidence already committed, no duplicate'
+          else
+            git commit -m 'evidence(004E2): exact original 80 public multi-family trials and negative controls'
+            git push origin HEAD:refs/heads/research/time-sat-004e2-multifamily-gate-calibration-20261102
+          fi
