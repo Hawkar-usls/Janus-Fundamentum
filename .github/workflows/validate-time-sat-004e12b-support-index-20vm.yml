@@ -1,0 +1,126 @@
+name: JANUS TIME-SAT-004E12B exact source-support parity index 20 hosted VMs
+on:
+  push:
+    branches: [research/time-sat-004e12b-order-invariant-support-index-20261102]
+    paths:
+      - .github/workflows/validate-time-sat-004e12b-support-index-20vm.yml
+      - experiments/direct/janus_time_sat_004e12b_support_index.py
+      - tests/test_time_sat_004e12b_support_index.py
+      - experiments/time_sat_004_external/janus_time_sat_004e12b_audit.py
+permissions:
+  contents: read
+concurrency:
+  group: janus-time-sat-E12B-source-SHA-frozen-before-first-20vm
+  cancel-in-progress: false
+jobs:
+  preworker-signed-original-source-and-complete-model-lock:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source exact parity source-proof truth tables, ten new source models, shuffled order, duplications, resource limits and no hidden source
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12b_support_index.py' -v
+      - name: Confirm previous E12A original E11 clause-order falsification guard still PASS
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12a_clause_order.py' -v
+      - name: Verify C023 production serialized original checker unmodified
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Freeze all 10 exact original CNF and 30 transformed SHA, full SAT models and decisions BEFORE scientific matrix
+        run: >-
+          python experiments/direct/janus_time_sat_004e12b_support_index.py
+          --preflight --out evidence/e12b-original-lock
+      - name: Publish SHA-pinned immutable original model and three-order source lock before any worker
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12b-frozen-source-model-decisions-before-workers
+          path: evidence/e12b-original-lock/SOURCE_LOCK*
+          if-no-files-found: error
+          retention-days: 7
+
+  original-source-comparison-workers:
+    needs: [preworker-signed-original-source-and-complete-model-lock]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        case: [e12b-torus-g14, e12b-torus-g18, e12b-circulant-n288, e12b-circulant-n352, e12b-diagonal-g16, e12b-diagonal-g22, e12b-exactone-t24, e12b-exactone-t36, e12b-mixedxor-n128, e12b-mixedxor-n192]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 13
+    permissions:
+      contents: read
+    env:
+      E12B_OS: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12b-frozen-source-model-decisions-before-workers
+          path: evidence/e12b-original-lock
+      - name: Pin original pycryptosat and independent CaDiCaL195 strong baseline
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Exactly 30 fresh source-model-verified, seven? NO five-arm original full cold paired trials across three exact reorderings
+        run: >-
+          python experiments/direct/janus_time_sat_004e12b_support_index.py
+          --case '${{ matrix.case }}'
+          --source-lock evidence/e12b-original-lock/SOURCE_LOCK.json
+          --out evidence/e12b-workers
+      - name: Retain all 30 originals SAT or explicit UNKNOWN as GitHub artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12b-worker-${{ matrix.os }}-${{ matrix.case }}
+          path: evidence/e12b-workers/*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  original-complete-model-and-600-trial-audit:
+    needs: [preworker-signed-original-source-and-complete-model-lock, original-source-comparison-workers]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: sat-e12b-frozen-source-model-decisions-before-workers
+          path: evidence/e12b-original-lock
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sat-e12b-worker-*
+          path: evidence/e12b-workers
+          merge-multiple: true
+      - name: Independently audit 20 distinct VMs, original source-model SHA, 600 cold outcomes and order-invariant source decisions
+        run: >-
+          python experiments/time_sat_004_external/janus_time_sat_004e12b_audit.py
+          --receipts evidence/e12b-workers
+          --source-lock evidence/e12b-original-lock/SOURCE_LOCK.json
+          --out evidence/e12b-audit/AUDIT.json
+      - name: Preserve same-admin source SHA proof audit (NOT an external scientific witness)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sat-e12b-original-independent-same-admin-audit
+          path: evidence/e12b-audit/AUDIT.json
+          if-no-files-found: warn
+          retention-days: 7

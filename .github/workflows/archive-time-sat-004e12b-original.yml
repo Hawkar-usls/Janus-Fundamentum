@@ -1,0 +1,55 @@
+name: JANUS TIME-SAT-004E12B archive 20 original VMs and 600 source-verified outcomes
+on:
+  push:
+    branches: [research/time-sat-004e12b-order-invariant-support-index-20261102]
+    paths: [.github/workflows/archive-time-sat-004e12b-original.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: janus-time-sat-e12b-permanent-exact-original-22-zip-archive-once
+  cancel-in-progress: false
+jobs:
+  source-locked-e12b-permanent-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require exact original E12B scientific CI finish SUCCESS on pre-archive tested HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 50); do
+            status=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/Hawkar-usls/Janus-Fundamentum/actions/runs/41479552023" | python -c "import json,sys;d=json.load(sys.stdin);print(d.get('status','')+' '+str(d.get('conclusion','')))")
+            echo "Original E12B study: ${status}"
+            if [ "${status}" = 'completed success' ]; then exit 0; fi
+            if [[ "${status}" == completed\ * ]]; then exit 1; fi
+            sleep 5
+          done
+          echo "Original scientific run did not complete within bounded source archive budget" >&2
+          exit 1
+      - name: Source SHA and complete model replay, exact original 22 GitHub ZIP digest, 20 VM IDs, independent auditor 600 trials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python experiments/time_sat_004_external/archive_time_sat_004e12b_original.py
+          --out experiments/time_sat_004_external/time_sat_004e12b_evidence
+      - name: Permanently save original source evidence in research branch ONLY
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = 'research/time-sat-004e12b-order-invariant-support-index-20261102'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add experiments/time_sat_004_external/time_sat_004e12b_evidence
+          if git diff --cached --quiet; then
+            echo 'E12B exact original SHA-proven archive already committed'
+          else
+            git commit -m 'evidence(004E12B): exact original 22 GitHub ZIPs and independent source-locked 600 outcome audit'
+            git push origin HEAD:refs/heads/research/time-sat-004e12b-order-invariant-support-index-20261102
+          fi
