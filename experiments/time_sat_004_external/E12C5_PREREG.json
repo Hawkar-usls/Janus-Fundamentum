@@ -1,0 +1,86 @@
+{
+  "schema": "JANUS-TIME-SAT-004E12C5-PREREG-V1",
+  "dated_utc": "2026-11-03",
+  "hypothesis": "Full-cold exact-XOR recognition plus standalone GF2 elimination with complete original-CNF SAT witness replay can beat even the fastest competing general-purpose/native-XOR baseline on some preregistered XOR-rich Lights-out SAT instances; never infer gain on arbitrary SAT CNF.",
+  "status": "FROZEN_BEFORE_NEW_BENCHMARK",
+  "stage": "R1_PUBLIC_REPRODUCIBILITY_NOT_SEALED",
+  "scope": "DEVELOPMENT_ONLY",
+  "candidate": "janus_gf2",
+  "baseline_arms": [
+    "cryptominisat_native_xor",
+    "cryptominisat_original_cnf",
+    "cadical195_original_cnf"
+  ],
+  "cases": [
+    {
+      "id": "new_grid_19",
+      "kind": "NEW_PLANTED_SAT_LIGHTSOUT",
+      "size": 19,
+      "seed": 202611030519,
+      "intended_status": "SAT"
+    },
+    {
+      "id": "new_grid_25",
+      "kind": "NEW_PLANTED_SAT_LIGHTSOUT",
+      "size": 25,
+      "seed": 202611030525,
+      "intended_status": "SAT"
+    },
+    {
+      "id": "new_grid_37",
+      "kind": "NEW_PLANTED_SAT_LIGHTSOUT",
+      "size": 37,
+      "seed": 202611030537,
+      "intended_status": "SAT"
+    },
+    {
+      "id": "old_unsat_guard",
+      "kind": "PUBLIC_PRIOR_SEEN_UNSAT",
+      "path": "experiments/time_sat_004_external/time_sat_004d3_evidence/lightsout-2.original.cnf",
+      "sha256": "84729f80119b50efac42d9477438abbc58c8712654ffe1fcdf9f324e44ae165d",
+      "intended_status": "UNSAT",
+      "negative_control_only": true
+    }
+  ],
+  "hosts": [
+    "ubuntu-22.04",
+    "ubuntu-24.04"
+  ],
+  "repeats_per_SAT_case_and_arm_and_host": 3,
+  "repeats_per_UNSAT_control_arm_and_host": 1,
+  "arms": [
+    "janus_gf2",
+    "cryptominisat_native_xor",
+    "cryptominisat_original_cnf",
+    "cadical195_original_cnf"
+  ],
+  "order_randomization_seed": 202611031205,
+  "measurement": "full cold process end-to-end wall includes Python startup, generating/loading + SHA exact original, exact XOR recognition, setup, solve, independent full original CNF SAT model replay, full output",
+  "limits": {
+    "child_cpu_seconds": 8,
+    "child_wall_seconds": 12,
+    "child_AS_bytes": 2147483648,
+    "threads": 1,
+    "maximum_total_child_runs": 80,
+    "job_timeout_minutes": 18
+  },
+  "deps": {
+    "pycryptosat": "5.15.0",
+    "python-sat": "1.9.dev17"
+  },
+  "scientific_win_gate": {
+    "per_case_per_host": "All 3 same-source repetitions of JANUS GF2 and ALL 3 native-XOR CryptoMiniSat verified SAT, median full-cold speedup candidate over MINIMUM median of every successful baseline (CMS native, CMS original, CaDiCaL) >= 1.20. Any censored candidate/baseline => INDETERMINATE, not win.",
+    "aggregated": "At least 2 of 3 new sources meet strict per_case_per_host condition on BOTH hosts, no regression > 5 percent in the remaining SAT case on either host. All three source SHA unique and reported. No post hoc threshold or instance replacement.",
+    "no_generalization": "Even passing this gate means reproducible within Lights-out family, not general SAT and not independent external blind proof."
+  },
+  "control_safety": {
+    "unsat": "Exact GF2 contradiction replay only; other solver UNSAT without portable proof is not positive timing evidence.",
+    "reject_partial_XOR": "Source XOR block recognition MUST exact-cover every original clause, otherwise abstain, no GF2 SAT claim",
+    "negative_and_timeout_retained": true,
+    "unknown_not_zero": true,
+    "validation_split": "These deterministic new seeds are publicly preregistered (not externally hidden); separate independent blind future cohort needed before stage5 promotion.",
+    "no_cost": "Only existing public GitHub standard hosted runners; avoid paid Rowan/NAS/PC",
+    "no_change_to": "E12C4 state loop; C023 production; Meta Registry auto-promotion",
+    "prohibit_auto_merge": true
+  }
+}
