@@ -1,11 +1,21 @@
 name: JANUS E12C4 self-continuing bounded development loop
 on:
   schedule:
-    - cron: '37 3,15 * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
+    inputs:
+      expected_cycle:
+        description: 'Next cycle requested after an audited prior commit; blank is recovery'
+        required: false
+        type: string
+      expected_state_sha256:
+        description: 'Exact SHA256 state expected for this chained dispatch'
+        required: false
+        type: string
   push:
     branches:
       - main
+      - research/e12c4-immediate-cycle-relay-20261103
     paths:
       - .github/workflows/time-sat-004e12c4-autonomous-development.yml
 
@@ -18,6 +28,8 @@ jobs:
   next-development-cycle:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
+    outputs:
+      should_run: ${{ steps.state_gate.outputs.should_run }}
     permissions:
       contents: read
     steps:
@@ -33,26 +45,56 @@ jobs:
           ref: research/time-sat-004e12c4-loop-state
           path: state
           persist-credentials: false
+      - name: Reject stale queued dispatch, duplicate work, and paused state
+        id: state_gate
+        env:
+          EXPECTED_CYCLE: ${{ inputs.expected_cycle || '' }}
+          EXPECTED_STATE_SHA256: ${{ inputs.expected_state_sha256 || '' }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          b = pathlib.Path('state/data/time_sat_004e12c4_loop/STATE.json').read_bytes()
+          s = json.loads(b)
+          if s.get('schema') != 'JANUS-E12C4-AUTOPILOT-STATE-V1':
+              raise SystemExit('FAIL_CLOSED_BAD_STATE_SCHEMA')
+          ecycle = os.environ.get('EXPECTED_CYCLE', '')
+          ehash = os.environ.get('EXPECTED_STATE_SHA256', '')
+          if bool(ecycle) != bool(ehash):
+              raise SystemExit('FAIL_CLOSED_PARTIAL_NEXT_CYCLE_LOCK')
+          active = s.get('mode') == 'DEVELOPMENT_ONLY'
+          active = active and type(s.get('next_cycle')) is int and 0 <= s['next_cycle'] < 500
+          if ecycle:
+              active = active and ecycle == str(s['next_cycle']) and ehash == hashlib.sha256(b).hexdigest()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('should_run=' + ('true' if active else 'false') + '\n')
+          print('JANUS_E12C4_DISPATCH_GATE', 'RUN' if active else 'SKIP',
+                'cycle', s.get('next_cycle'), 'sha', hashlib.sha256(b).hexdigest())
+          PY
       - uses: actions/setup-python@v5
+        if: steps.state_gate.outputs.should_run == 'true'
         with:
           python-version: '3.12'
       - name: Install pre-used pinned open-source solvers
+        if: steps.state_gate.outputs.should_run == 'true'
         run: >-
           python -m pip install --disable-pip-version-check --only-binary=:all:
           'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
       - name: Record exact research SHA
+        if: steps.state_gate.outputs.should_run == 'true'
         run: echo "E12C4_RESEARCH_SHA=$(git -C src rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Always recheck proof and state-machine invariants
+        if: steps.state_gate.outputs.should_run == 'true'
         working-directory: src
         run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4*.py' -v
       - name: Execute exactly the next bounded DEV cycle, never E12C4 holdout
+        if: steps.state_gate.outputs.should_run == 'true'
         working-directory: src
         run: >-
           python experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
           --state "$GITHUB_WORKSPACE/state/data/time_sat_004e12c4_loop/STATE.json"
           --out "$GITHUB_WORKSPACE/output"
       - name: Keep all reports, including negative outcomes, separate from production
-        if: always()
+        if: ${{ always() && steps.state_gate.outputs.should_run == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: e12c4-autonomous-dev-${{ github.run_id }}-${{ github.run_attempt }}
@@ -62,11 +104,12 @@ jobs:
 
   persist-audited-state:
     needs: next-development-cycle
-    if: ${{ needs['next-development-cycle'].result == 'success' && github.ref == 'refs/heads/main' }}
+    if: ${{ needs['next-development-cycle'].result == 'success' && needs['next-development-cycle'].outputs.should_run == 'true' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout only state for write - NO experimental source code executed
         uses: actions/checkout@v4
@@ -170,6 +213,7 @@ jobs:
           
           PY
       - name: Append-only push to research state branch - NEVER main or C023
+        id: persisted
         working-directory: state
         run: |
           git config user.name 'JANUS E12C4 GitHub Actions'
@@ -177,7 +221,33 @@ jobs:
           git add data/time_sat_004e12c4_loop
           if git diff --cached --quiet; then
             echo 'No new state: paused or duplicate run'
+            echo 'appended=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git commit -m "e12c4(auto-dev): append source SHA, censored receipts, safe-next-cycle state [skip ci]"
           git push origin HEAD:research/time-sat-004e12c4-loop-state
+          echo 'appended=true' >> "$GITHUB_OUTPUT"
+      - name: Start next DEV cycle immediately after audited state commit
+        if: steps.persisted.outputs.appended == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          b = pathlib.Path('state/data/time_sat_004e12c4_loop/STATE.json').read_bytes()
+          s = json.loads(b)
+          if s.get('schema') != 'JANUS-E12C4-AUTOPILOT-STATE-V1':
+              raise SystemExit('FAIL_CLOSED_INVALID_PERSISTED_STATE')
+          if not s.get('completed_run_ids') or s['completed_run_ids'][-1] != os.environ['GITHUB_RUN_ID']:
+              raise SystemExit('FAIL_CLOSED_NOT_OWN_LATEST_COMMIT')
+          if s.get('mode') != 'DEVELOPMENT_ONLY' or type(s.get('next_cycle')) is not int or s['next_cycle'] >= 500:
+              print('JANUS_E12C4_DISPATCH_STOPPED', s.get('mode'), s.get('next_cycle'))
+              raise SystemExit(0)
+          payload = {'ref': 'main', 'inputs': {
+              'expected_cycle': str(s['next_cycle']),
+              'expected_state_sha256': hashlib.sha256(b).hexdigest()}}
+          url = 'repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/workflows/time-sat-004e12c4-autonomous-development.yml/dispatches'
+          subprocess.run(['gh', 'api', '-X', 'POST', url, '--input', '-'],
+                         input=json.dumps(payload), text=True, check=True)
+          print('JANUS_E12C4_NEXT_CYCLE_DISPATCHED', s['next_cycle'])
+          PY
