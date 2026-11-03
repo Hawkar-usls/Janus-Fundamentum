@@ -8,6 +8,7 @@ on:
       - experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
       - tests/test_time_sat_004e12c4_profit_aware_dev.py
       - tests/test_time_sat_004e12c4_autopilot_cycle.py
+      - tests/test_time_sat_004e12c4_sparse_model_replay.py
       - experiments/time_sat_004_external/E12C4_INTERNAL_DEV_README.md
       - .github/workflows/test-time-sat-004e12c4-internal-dev.yml
 permissions:
@@ -26,7 +27,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Proof, split and abstention tests (no SAT solver, no holdout timing)
+      - name: Install pinned local SAT engines for exposed regression source
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Source proof, safe model extension and exact exposed cycle18 full-cold replay
         run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4*.py' -v
       - name: Write new internal original source SHA and transformed source manifest
         run: python experiments/direct/janus_time_sat_004e12c4_profit_aware_dev.py --write-cohort-lock evidence/e12c4-development/COHORT_LOCK.json
