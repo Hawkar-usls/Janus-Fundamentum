@@ -8,6 +8,8 @@ import argparse
 import json
 from pathlib import Path
 from hashlib import sha1,sha256
+from statistics import median
+from math import isclose
 
 ROOT=Path(__file__).resolve().parents[2]
 PREREG=ROOT/"experiments/time_sat_004_external/E12C5_R2_PREREG.json"
@@ -80,6 +82,21 @@ def audit(reports):
                     raise AssertionError("FALSE_FULL_VERIFIED_CLAIM")
                 if not verified and item["median_full_cold_s"] is not None:
                     raise AssertionError("CENSORED_NUMERIC_GAIN_FORBIDDEN")
+                if verified:
+                    true_median=median(r["full_cold_child_wall_s"] for r in actual)
+                    if (item["median_full_cold_s"] is None or
+                        not isclose(item["median_full_cold_s"],true_median,rel_tol=1e-10,abs_tol=1e-10)):
+                        raise AssertionError("REPORTED_MEDIAN_NOT_REPRODUCIBLE_FROM_RAW")
+            selected=arms["janus_pre_solve_selector"]
+            valid_controls=[arms[arm]["median_full_cold_s"] for arm in ARMS[1:]
+                if arms[arm]["verified_3_of_3"]]
+            correct_ratio=(min(valid_controls)/selected["median_full_cold_s"]
+                           if selected["verified_3_of_3"] and valid_controls else None)
+            recorded=d["summary"][case]["ratio_fastest_verified_baseline"]
+            if ((correct_ratio is None)!=(recorded is None) or
+                (correct_ratio is not None and
+                 not isclose(correct_ratio,recorded,rel_tol=1e-10,abs_tol=1e-10))):
+                raise AssertionError("SOURCE_GAIN_NOT_REPRODUCIBLE_FROM_RAW")
     if (reports[0]["source_manifest"]!=reports[1]["source_manifest"]
        or reports[0]["r2_script_sha256"]!=reports[1]["r2_script_sha256"]):
         raise AssertionError("CROSS_HOST_SOURCE_OR_CODE_NOT_IDENTICAL")
