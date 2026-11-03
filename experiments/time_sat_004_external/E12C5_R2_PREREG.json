@@ -1,0 +1,131 @@
+{
+  "schema": "JANUS-E12C5-R2-FROZEN-SELECTOR-PROTOCOL-V1",
+  "committed_before_new_R2_source_generation_and_measurement": true,
+  "experiment": "R2 new source test of pre-solve conditional RAW / standalone exact GF2 selection",
+  "hypothesis": "A conservative pre-solve selector, fit ONLY to prior R1 source-bound results, avoids GF2 for small full-XOR CNF and uses certified GF2 for sufficiently large exact full-XOR originals, beating the fastest successful competing solver on multiple NEW sources without material regret elsewhere.",
+  "training_source_only": "R1 19x19/25x25/37x37 repeated runs #41607003603 and #41607533186 with archived source/receipt SHAs in experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json",
+  "excluded_from_training": [
+    "ALL_R2_SOURCES",
+    "R1_UNSAT_GUARD_TIMING_AS_A_GAIN",
+    "FAILED_R1_AGGREGATE_GATE",
+    "E12C4_HOLDOUT",
+    "FUTURE_BLIND_SEALED_CHALLENGES"
+  ],
+  "selector_frozen_before_tests": {
+    "threshold_variables": 500,
+    "decision": "IF n<500 THEN CaDiCaL195 original; ELSE ONLY IF EVERY original CNF clause belongs to an exact certified XOR parity block THEN standalone GF2; OTHERWISE CaDiCaL195 original. No solver calls, SAT/UNSAT answers, benchmark timing or planted model may influence selector.",
+    "rationale": "R1 at n=361 lost vs best RAW/CaDiCaL; at n=625 and n=1369 GF2 exceeded CMS native; 500 is a simple frozen separating threshold, not fitted to R2.",
+    "gf2_cover_required": true,
+    "unknown_no_positive_evidence": true
+  },
+  "new_unseen_cases": [
+    {
+      "id": "new_r2_grid_21",
+      "size": 21,
+      "seed": 202611030621,
+      "n": 441,
+      "expected_selector": "cadical195_original_cnf",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "new_r2_grid_23",
+      "size": 23,
+      "seed": 202611030623,
+      "n": 529,
+      "expected_selector": "janus_gf2",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "new_r2_grid_29",
+      "size": 29,
+      "seed": 202611030629,
+      "n": 841,
+      "expected_selector": "janus_gf2",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "new_r2_grid_39",
+      "size": 39,
+      "seed": 202611030639,
+      "n": 1521,
+      "expected_selector": "janus_gf2",
+      "status_by_construction": "SAT"
+    }
+  ],
+  "source_generation": "Use same row-major 5-neighbor Lights-out toggle XOR construction, Python random.Random(seed).getrandbits(1), complete 2^(k-1) CNF clauses for each cell; SHA256 full canonical n+rows generated before first measurement; immutable sizes/seeds/implementation. All models satisfy EVERY original clause.",
+  "excluded_seen_sizes": [
+    19,
+    25,
+    37
+  ],
+  "negative_controls": [
+    {
+      "case": "tamper_missing_one_clause",
+      "source": "new_r2_grid_23",
+      "require": "exact cover rejects; selected chooses untouched original CaDiCaL",
+      "timing": "NOT USED FOR POSITIVE PERFORMANCE"
+    },
+    {
+      "case": "known_R1_UNSAT_GF2_GUARD",
+      "source": "R1 old_unsat_guard",
+      "require": "same-admin contradiction replay; not as proof of general SAT, not new R2 benchmark"
+    },
+    {
+      "case": "holdout_or_prior_original",
+      "require": "reject any source SHA collision with 3 old R1 and 4 new R2 cases"
+    }
+  ],
+  "matrix": {
+    "hosts": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "free_GitHub_hosted": true,
+    "repetitions_per_case_arm_host": 3,
+    "cases": 4,
+    "arms": [
+      "janus_pre_solve_selector",
+      "janus_gf2",
+      "cryptominisat_native_xor",
+      "cryptominisat_original_cnf",
+      "cadical195_original_cnf"
+    ],
+    "max_total_child_runs_both_hosts": 120,
+    "order_random_seed": 202611031211,
+    "full_cold_wall_includes": [
+      "python_startup",
+      "original_source_generation",
+      "original_full_hash",
+      "pre-solve_decision_and_full_XOR_certificate",
+      "solver_setup",
+      "search_or_GF2_elimination",
+      "original_CNF_model_replay",
+      "result_serialization"
+    ],
+    "child_threads": 1,
+    "python_sat": "1.9.dev17",
+    "pycryptosat": "5.15.0",
+    "cpu_limit_s": 8,
+    "wall_limit_s": 12,
+    "memory_limit_bytes": 2147483648,
+    "job_timeout_minutes": 18
+  },
+  "success_gates": {
+    "per_case_per_host": "selector and fastest *successful verified* baseline must both have 3/3 SAT_VERIFIED, using medians of full cold child wall; source speedup = min(all baseline median times with 3 SAT_VERIFIED) / selector median. No finite speedup imputed to censored baseline.",
+    "narrow_pre_registered": "At least 2/4 NEW sources with >=1.20x ratio on BOTH Ubuntu hosts, all 4 sources with ratio >=1/1.05 on BOTH hosts, selector decisions invariant across both hosts, every SAT output fully replayed on original CNF. If true report CONDITIONAL_NEW_SOURCE_CLASS_GAIN_CANDIDATE, not universal SAT claim.",
+    "censoring": "Time-limited baseline is explicitly RIGHT_CENSORED; do not call it solved or grant imaginary ratio. Qualify any narrow gain if a major baseline cannot finish.",
+    "all_baselines_full_evidence": "Separate stricter scientific gate; every baseline 3/3 verified on ALL new sources. A censored CaDiCaL means all-baselines gate NOT PASSED even if narrow gain candidate.",
+    "no_stage5_promotion": "Even passing narrow gates does not constitute stage 5 universal SAT or independent sealed generalization; external administrator and new sealed cross-family data required."
+  },
+  "audit": {
+    "append_only_raw_reports": true,
+    "source_sha_required": true,
+    "per_host_source_sha_same": true,
+    "sha256_prereg_and_code_required": true,
+    "do_not_modify_E12C4_history": true,
+    "do_not_promote_C023": true,
+    "do_not_auto_merge": true,
+    "do_not_use_paid_infra": true
+  },
+  "status": "FROZEN_BEFORE_FIRST_R2_MEASUREMENT"
+}
