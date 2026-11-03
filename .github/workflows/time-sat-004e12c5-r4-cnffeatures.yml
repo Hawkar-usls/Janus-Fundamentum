@@ -1,0 +1,104 @@
+name: JANUS E12C5 R4 prior-only CNF cost predictor and 8 unseen mixed SAT sources
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-r4-cnffeatures-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c5-r4-cnffeatures.yml
+      - experiments/direct/janus_time_sat_004e12c5_r4_model.py
+      - experiments/direct/janus_time_sat_004e12c5_r4_benchmark.py
+      - experiments/direct/janus_time_sat_004e12c5_r4_audit.py
+      - experiments/time_sat_004_external/E12C5_R4_PREREG.json
+      - tests/test_time_sat_004e12c5_r4_calibration.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-r4-immutable-8-mixed-source-evaluation
+  cancel-in-progress: false
+jobs:
+  frozen-source-workers:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        host: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify immutable R1-R3 learning evidence and PRE-test protocol blob
+        run: |
+          echo "EXPERIMENT_CODE_SHA=${{ github.sha }}"
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R4_PREREG.json)" = '6ae53231ee55c912720525896bfdf978a4b7fb8e'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json)" = '3457551135c85f45564cd9125d363aefc8de83f8'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R2_POSTRUN_REPORT.json)" = '41109aed354e5f627f7c5834adc4705fb5b878ac'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R3_POSTRUN_REPORT.json)" = 'a9313a78b8929e7afc46a91cc384c0b1e7c78272'
+          sha256sum experiments/time_sat_004_external/E12C5_R4_PREREG.json
+      - name: Install pinned tested SAT engines without paid compute
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Fit ONLY historical R1-R3 original SHA sources before new trials
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r4_model.py
+          --fit-output evidence/r4-FIT.json
+      - name: Prove train/test split, no-peeking, partial-XOR safeguards, risk abstention
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c5_r4_calibration.py' -v
+      - name: Generate 8 fresh source SHA and test source integrity with frozen fit
+        run: python experiments/direct/janus_time_sat_004e12c5_r4_model.py --check
+      - name: Full cold SAT evaluation 8 sources x 5 methods x 3 repetitions
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r4_benchmark.py
+          --fit evidence/r4-FIT.json
+          --out evidence/time_sat_004e12c5_r4/${{ matrix.host }}
+      - name: Archive complete raw histories, even on negative model verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r4-${{ matrix.host }}-${{ github.run_id }}
+          path: |
+            evidence/r4-FIT.json
+            evidence/time_sat_004e12c5_r4/${{ matrix.host }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_R4_PREREG.json
+          retention-days: 90
+          if-no-files-found: warn
+  independent-raw-replay-audit:
+    needs: frozen-source-workers
+    if: ${{ needs['frozen-source-workers'].result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-r4-*
+          path: evidence/r4-incoming
+          merge-multiple: false
+      - name: Independently rebuild historical model and all 240 raw evidence metrics
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r4_audit.py
+          --report-root evidence/r4-incoming
+          --out evidence/r4-final-audit
+      - name: Archive frozen positive or negative verdict; no automatic promotion
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r4-independent-audit-${{ github.run_id }}
+          path: evidence/r4-final-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: warn

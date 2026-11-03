@@ -1,0 +1,167 @@
+{
+  "schema": "JANUS-E12C5-R4-PREREG-CNF-RISK-V1",
+  "version": "R4.FROZEN.1",
+  "state": "FROZEN_BEFORE_NEW_R4_SOURCE_GENERATION_AND_MEASUREMENT",
+  "scientific_goal": "Predict expected full-cold GF2 vs strongest verified external SAT solver runtime using only source CNF structural features and R1-R3 prior results; route to GF2 only on sufficiently supported, lower-risk structural cohorts, otherwise fall back to unmodified CNF.",
+  "training_sources": [
+    {
+      "path": "experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json",
+      "git_blob_sha1": "3457551135c85f45564cd9125d363aefc8de83f8"
+    },
+    {
+      "path": "experiments/time_sat_004_external/E12C5_R2_POSTRUN_REPORT.json",
+      "git_blob_sha1": "41109aed354e5f627f7c5834adc4705fb5b878ac"
+    },
+    {
+      "path": "experiments/time_sat_004_external/E12C5_R3_POSTRUN_REPORT.json",
+      "git_blob_sha1": "a9313a78b8929e7afc46a91cc384c0b1e7c78272"
+    }
+  ],
+  "training_policy": {
+    "samples": "13 DISTINCT ORIGINAL SHA sources from R1(3) R2(4) R3(6), with repeat and host medians aggregated once per source; not 3x the host repeats as independent data.",
+    "original_CNF_reconstructed_for_features_only": true,
+    "feature_extraction": "Before any solver, compute n, clause count, literal count, histogram of clause lengths, certified XOR-equation count, XOR support width histogram, degree distribution, support overlap and density, RHS balance and topology signature. No GF2 elimination, SAT solve, planted label, future timing or external holdout access.",
+    "report_label": "Observed log(median full cold GF2 / minimum median of 3/3 verified independent CryptoMiniSat native/original or CaDiCaL). Each CPU-censored baseline is missing, NEVER treated as completed.",
+    "pinned_model": "Deterministic bounded k-nearest-neighbor predictor over normalized logged structural features; one vote per original SHA and one aggregate per equivalent support topology/side. Fit only on historical completed validated observations.",
+    "counterfactual_regret": "Include empirical disagreement and leave-one-grid-size-out prediction error in safety margin; if too few independent support sizes, uncertain class or estimated speedup lower bound <1.20, abstain.",
+    "out_of_domain": "No training sources outside exact grid family; all synthetic random-XOR and partial/mixed CNFs route to plain original-CNF CryptoMiniSat without GF2. For certified grid but uncertain predicted gain, select CryptoMiniSat NATIVE XOR exact-block solver instead of unsafe slow raw. This is abstention from JANUS GF2, not generality proof.",
+    "timeout_or_child_failure": "Never use as a numerical speedup or positive training label.",
+    "sparse_feature_computation_cap": "<=160000 original literals, <=35000 clauses, <=2500 vars, max clause width<=6, bounded 2 seconds for feature extraction within full cold measurement.",
+    "explicit_frozen_model": {
+      "structural_features": [
+        "log1p_n",
+        "log1p_clauses",
+        "log1p_literal_occurrences",
+        "mean_original_clause_width",
+        "certified_equations_per_variable",
+        "mean_certified_support_width",
+        "support_variable_degree_CV",
+        "rhs_bias_from_half",
+        "is_proven_square_lightsout_topology"
+      ],
+      "distance": "Euclidean over fixed scaled features (divide log1p n by 2, log1p clauses by 2, log1p lits by 2, mean widths by 3, certified ratio by 2, mean support width by 6, degree CV by 2, RHS bias unscaled, topology mismatch adds 3). No target-aware fitting or scaling.",
+      "neighbors": "Five nearest DIFFERENT historical odd-grid side lengths; aggregate independent source SHAs on same grid side BEFORE fitting (two 41 examples become one side group). Distances based only on frozen structural features.",
+      "weight": "1/(0.03+distance)^2 normalized across five selected side lengths",
+      "predict": "exp(weighted arithmetic mean log of historical positive GF2 and fastest verified external median cold times respectively), both estimated times recorded pre-solving",
+      "local_lower_bound": "minimum of observed nearest-neighbor 25th percentile gain ratio and estimated_gain * exp(-median(abs(log observed gain - leave-one-side-out predicted log gain)))",
+      "choose_GF2": "only when full exact XOR and proven source-grid topology, >=5 distinct completed size groups, estimated_gain >=1.40 and robust_lower_bound >=1.20 and pre-solve structural time <=2s. If certified but uncertain, use CryptoMiniSat NATIVE XOR on exactly reconstructed full parity blocks, with original CNF SAT witness replay. If not certified or unknown-family, use CryptoMiniSat on unchanged ORIGINAL CNF, no GF2.",
+      "unknown_family": "Always abstain from GF2; no new non-grid training samples at R4 decision-time.",
+      "future_policy": "All R4 data are evaluation only, not added to training. Changes require a separately preregistered R5 study."
+    },
+    "data_leakage_guards": {
+      "training_only_sha256": "R1/R2/R3 report git blobs must match prereg and each old original recomputed SHA must match archived source SHA",
+      "all_past_labels_grouped_by_original_sha": true,
+      "same_grid_size_41_seeds_grouped_before_kNN": true,
+      "self_training_prohibited": true,
+      "no_feature_scaler_trained_on_R4": true,
+      "no_holdout_probe": true,
+      "no_candidate_predictions_recomputed_after_R4_outcomes": true
+    }
+  },
+  "evaluation_cohort": [
+    {
+      "id": "r4_lo_13",
+      "kind": "LIGHTSOUT_PLANTED_SAT",
+      "side": 13,
+      "seed": 202611031413
+    },
+    {
+      "id": "r4_lo_31",
+      "kind": "LIGHTSOUT_PLANTED_SAT",
+      "side": 31,
+      "seed": 202611031431
+    },
+    {
+      "id": "r4_lo_43a",
+      "kind": "LIGHTSOUT_PLANTED_SAT",
+      "side": 43,
+      "seed": 202611031443
+    },
+    {
+      "id": "r4_lo_43b",
+      "kind": "LIGHTSOUT_PLANTED_SAT",
+      "side": 43,
+      "seed": 202611041443
+    },
+    {
+      "id": "r4_xor4_96",
+      "kind": "RANDOM_PLANTED_XOR_COMPLETE",
+      "n": 96,
+      "width": 4,
+      "equations": 96,
+      "seed": 202611031496
+    },
+    {
+      "id": "r4_xor5_128",
+      "kind": "RANDOM_PLANTED_XOR_COMPLETE",
+      "n": 128,
+      "width": 5,
+      "equations": 128,
+      "seed": 2026110315128
+    },
+    {
+      "id": "r4_partial_xor4",
+      "kind": "RANDOM_PLANTED_XOR_WITH_ONE_CLAUSE_REMOVED",
+      "n": 96,
+      "width": 4,
+      "equations": 96,
+      "seed": 202611031496
+    },
+    {
+      "id": "r4_planted3",
+      "kind": "PLANTED_3SAT_NON_XOR",
+      "n": 96,
+      "m": 288,
+      "seed": 2026110315396
+    }
+  ],
+  "rules": {
+    "source_generator": "Pure deterministic SHA-pinned generator R1 complete XOR Lights-out grid and R4 random planted parity/3SAT with random.Random seed, unique original CNF SHA; never reuse R1/R2/R3 samples.",
+    "inputs_to_selector": "Only original n and rows from CNF, no source ID, seed, expected SAT, solver output or run timing.",
+    "selector_behavior": "For complete certified XOR, compute frozen prior-only cost model. GF2 only if robust lower bound >=1.20 and predicted mean >=1.40 and topology support. Otherwise native-XOR CryptoMiniSat (all parity blocks exact); for any incomplete cover or unknown non-grid domain, original-CNF CryptoMiniSat. Every outcome is replayed on original CNF.",
+    "negative_controls": "Remove one parity clause; polarity permutation that breaks grid support must no longer be called Lights-out; random exact-XOR but non-grid should abstain; normal planted 3SAT should abstain; no C023 or E12C4 writes.",
+    "signed_time": "Parent-measured full cold subprocess wall includes Python startup, CNF generation, structural profiling, exact-cover inspection, decision, solver startup, original CNF replay and JSON serialization; separately report profiling wall.",
+    "max_workers": "2 GitHub-hosted standard Ubuntu jobs; no paid/owner PC/NAS.",
+    "arms": [
+      "janus_r4_pre_solve_predictor",
+      "janus_gf2_exact_ablation",
+      "cryptominisat_native_xor",
+      "cryptominisat_original_cnf",
+      "cadical195_original_cnf"
+    ],
+    "arm_comparison": "Do NOT include janus_gf2_exact_ablation as external comparator to itself.",
+    "full_cold_repeats_per_source_arm_host": 3,
+    "hosts": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "max_cold_children": 240,
+    "random_order_seed": 202611031421,
+    "cpu_limit_s": 8,
+    "wall_limit_s": 12,
+    "memory_limit_bytes": 2147483648,
+    "job_timeout_minutes": 18,
+    "pins": {
+      "pycryptosat": "5.15.0",
+      "python-sat": "1.9.dev17"
+    },
+    "native_xor_control_abstention": "cryptominisat_native_xor and janus_gf2_exact_ablation on noncertified CNF MUST return ABSTAIN_NO_EXACT_XOR, never SAT, never a finite verified timing. Native XOR is not mathematically appropriate without complete cover."
+  },
+  "frozen_science_gate": {
+    "per_source": "SAT solution for 3/3 selector trials verified on every original CNF clause on both hosts; fastest external completed 3/3 comparator must exist for finite speedup; timeout/censor -> abstention evidence, not numerical win.",
+    "narrow_gain": "At least 2 DISTINCT previously unmeasured grid sizes have >=1.20x selector speedup versus fastest verified external comparator on BOTH hosts, and every other tested source has <=10% time regret (>=1/1.10), WITH ALL selected solutions verified 3/3.",
+    "abstention_proof": "All 4 non-grid or incomplete-XOR tasks must choose original CNF CryptoMiniSat; source alterations cannot produce fake complete XOR.",
+    "strong_all_controls_gate": "All APPLICABLE external control arms must verify SAT 3/3; native-XOR arm is inapplicable and must report ABSTAIN_NO_EXACT_XOR on incomplete/mixed/non-XOR input (not a solver failure). Any applicable arm CPU-censored => strict all-comparator gate NOT PASSED.",
+    "anti_overfit": "All feature choices, fit source SHAs, model hyperparameters and threshold frozen before any R4 result. No tuning on R4 until a separate future R5 prereg cohort.",
+    "honest_ceiling": "Even a narrow win is not universal 3SAT/P=NP or external independently administered blinded verification; Stage5 general-purpose remains CLOSED."
+  },
+  "external_witness_protocol": {
+    "status": "NOT_CONNECTED",
+    "future_requirement": "Third-party administrator controls unseen CNF set/labels and random seeds, sends only source constraints under agreed prereg and verifies solver artifacts independently. Independent provider+admin, signed SHA/source provenance, no access to our learned source SHA before freeze, read-only witness audit, never an own GitHub Actions worker called external.",
+    "no_auto_promotion": true
+  },
+  "C023": "UNCHANGED",
+  "E12C4": "UNCHANGED",
+  "meta_registry": "DO_NOT_AUTO_PUBLISH_AS_PROVEN_WIN",
+  "retry_budget": "do not spawn unbounded retries"
+}
