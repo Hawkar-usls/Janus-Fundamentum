@@ -1,0 +1,93 @@
+name: JANUS E12C5 R2 frozen pre-solve RAW vs GF2 selector
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-r2-locked-selector-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c5-r2-frozen-selector.yml
+      - experiments/time_sat_004_external/E12C5_R2_PREREG.json
+      - experiments/direct/janus_time_sat_004e12c5_r2_selector.py
+      - experiments/direct/janus_time_sat_004e12c5_r2_audit.py
+      - tests/test_time_sat_004e12c5_r2_selector.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-r2-frozen-raw-gf2-exact-only
+  cancel-in-progress: false
+jobs:
+  new-unseen-sources:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        ubuntu: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.ubuntu }}
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze script and training git blob provenance before any measurement
+        run: |
+          echo "GITHUB_SHA=${{ github.sha }}"
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R2_PREREG.json)" = '6d31e3e716a9c09a26a83c7dceb06871e627f314'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json)" = '3457551135c85f45564cd9125d363aefc8de83f8'
+          test "$(git hash-object experiments/direct/janus_time_sat_004e12c5_profit_test.py)" = '192dc83338cb25dde0bc36f276d2ff52325c93e1'
+          sha256sum experiments/time_sat_004_external/E12C5_R2_PREREG.json
+          sha256sum experiments/direct/janus_time_sat_004e12c5_r2_selector.py
+      - name: Install pinned prior-standard SAT controls, no paid runners
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Proof, R1-generator compatibility, source uniqueness, prereg no-peeking, fallback tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c5_r2_selector.py' -v
+      - name: Bound source integrity, exact GF2 cover, fake-label-independent routing
+        run: python experiments/direct/janus_time_sat_004e12c5_r2_selector.py --self-test
+      - name: Full-cold 4 unseen SAT sources x 3 randomized repeats x 5 arms
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r2_selector.py
+          --out evidence/time_sat_004e12c5_r2/${{ matrix.ubuntu }}
+      - name: Preserve every success, failure, timeout and frozen source SHA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r2-${{ matrix.ubuntu }}-${{ github.run_id }}
+          path: |
+            evidence/time_sat_004e12c5_r2/${{ matrix.ubuntu }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_R2_PREREG.json
+          retention-days: 90
+          if-no-files-found: warn
+  two-host-independent-replay-audit:
+    needs: new-unseen-sources
+    if: ${{ needs['new-unseen-sources'].result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-r2-*
+          path: evidence/e12c5-r2-artifacts
+          merge-multiple: false
+      - name: Recompute every median and all-baseline ratio from complete raw cold receipts
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r2_audit.py
+          --report-root evidence/e12c5-r2-artifacts
+          --out evidence/e12c5-r2-audit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e12c5-r2-frozen-audit-${{ github.run_id }}
+          path: evidence/e12c5-r2-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: warn
