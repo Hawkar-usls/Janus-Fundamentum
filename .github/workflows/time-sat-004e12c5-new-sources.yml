@@ -1,0 +1,135 @@
+name: JANUS E12C5 preregistered GF2 profit on new Lights-out sources
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-conditional-gf2-profit-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c5-new-sources.yml
+      - experiments/direct/janus_time_sat_004e12c5_profit_test.py
+      - experiments/time_sat_004_external/E12C5_PREREG.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-narrow-gf2-preregistered-validation
+  cancel-in-progress: false
+jobs:
+  frozen-cohort-2-host-replay:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        ubuntu: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.ubuntu }}
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact previously used open-source pinned SAT engines
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: State original source and research code commits before measurements
+        run: |
+          git rev-parse HEAD
+          sha256sum experiments/time_sat_004_external/E12C5_PREREG.json
+          sha256sum experiments/direct/janus_time_sat_004e12c5_profit_test.py
+      - name: Source proof, source SHA uniqueness, full XOR cover and negative test
+        run: python experiments/direct/janus_time_sat_004e12c5_profit_test.py --self-test
+      - name: Fixed three new SAT sources and old UNSAT guard, four arms, cold
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_profit_test.py
+          --out evidence/time_sat_004e12c5/${{ matrix.ubuntu }}
+      - name: Archive complete negative and positive receipts separately from main
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-results-${{ matrix.ubuntu }}-${{ github.run_id }}
+          path: |
+            evidence/time_sat_004e12c5/${{ matrix.ubuntu }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_PREREG.json
+          retention-days: 30
+          if-no-files-found: error
+  cross-host-audit:
+    needs: [frozen-cohort-2-host-replay]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-results-*
+          path: e12c5-datasets
+          merge-multiple: false
+      - name: Fail-closed compare two independently launched CI hosts and prerule
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("e12c5-datasets")
+          files=sorted(root.glob("*/RESULT.json"))
+          if len(files)!=2:
+              raise SystemExit("E12C5_INCOMPLETE_TWO_HOST_RECEIPTS")
+          docs=[json.loads(path.read_text()) for path in files]
+          d0,d1=docs
+          for d in docs:
+              if d["schema"]!="JANUS-E12C5-PREREGISTERED-RESULTS-V1" or len(d["results"])!=40:
+                  raise SystemExit("E12C5_INVALID_RECEIPT")
+              if set(d["source_manifest"])!={
+                  "new_grid_19","new_grid_25","new_grid_37","old_unsat_guard"}:
+                  raise SystemExit("E12C5_CASE_SOURCE_REPLACEMENT")
+              unsat = d["summary"]["old_unsat_guard"]["arms"]["janus_gf2"]
+              if unsat["all_outcomes"] != ["UNSAT_SOURCE_GF2_COMBINATION_REPLAY_SAME_ADMIN"]:
+                  raise SystemExit("E12C5_UNSAT_NEGATIVE_GUARD_FAILED")
+          if d0["pre_registration_sha256"]!=d1["pre_registration_sha256"] or (
+              d0["script_sha256"]!=d1["script_sha256"]) or (
+              d0["source_manifest"]!=d1["source_manifest"]):
+              raise SystemExit("E12C5_CROSS_HOST_SOURCE_OR_CODE_SHA_DRIFT")
+          gains={}
+          candidates=[]
+          complete=0
+          for key in ("new_grid_19","new_grid_25","new_grid_37"):
+              a,b=(d["summary"][key] for d in docs)
+              ra,rb=a["strict_ratio"],b["strict_ratio"]
+              gains[key]={"host_ratios": [ra,rb]}
+              if ra is not None and rb is not None:
+                  complete+=1
+                  if ra>=1.20 and rb>=1.20:
+                      candidates.append(key)
+          no_severe_regret=all(
+              d["summary"][key]["strict_ratio"] is not None and
+              d["summary"][key]["strict_ratio"]>=1/1.05
+              for d in docs for key in ("new_grid_19","new_grid_25","new_grid_37"))
+          positive=(len(candidates)>=2 and complete==3 and no_severe_regret)
+          verdict=("NARROW_TWO_HOST_LIGHTSOUT_GAIN_CANDIDATE_NEEDS_EXTERNAL_WITNESS"
+                   if positive else "NO_PREREGISTERED_CLASS_GAIN_ESTABLISHED")
+          result={
+              "schema":"JANUS-E12C5-CROSS-HOST-AUDIT-V1",
+              "verdict":verdict,
+              "frozen_prereg_sha256":d0["pre_registration_sha256"],
+              "source_manifest":d0["source_manifest"],
+              "n_sources":3,
+              "n_fully_verified_comparison_sources":complete,
+              "n_sources_beating_strongest_successful_baseline_both_hosts":len(candidates),
+              "qualifying_cases":candidates,
+              "no_regret_more_than_5_percent":no_severe_regret,
+              "gains":gains,
+              "heldout_external_blind":"NOT_DONE",
+              "independent_external_admin":"NOT_DONE",
+              "general_SAT_speedup":"NOT_CLAIMED",
+              "production_C023":"UNCHANGED"}
+          out=Path("e12c5-audit");out.mkdir(exist_ok=True)
+          (out/"AUDIT.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
+          print("E12C5_TWO_HOST_AUDIT",json.dumps(result,sort_keys=True),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-two-host-audit-${{ github.run_id }}
+          path: e12c5-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: error
