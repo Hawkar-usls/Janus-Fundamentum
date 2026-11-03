@@ -74,6 +74,35 @@ def trained_from_past(state):
         raise AssertionError("Training original SHA not independent")
     return base
 
+def verified_cryptominisat_model(assignment, n, original_rows):
+    """Extend a 1-based, potentially sparse CryptoMiniSat SAT assignment.
+
+    Variables not mentioned by a CNF solver may be absent; variables left
+    unconstrained may be None. Choose False deterministically for those only,
+    then verify EVERY original clause. If that extension fails, do not claim
+    SAT (and never use the planted model as a solver substitute).
+    """
+    if type(n) is not int or n < 1:
+        raise AssertionError("Invalid original CNF variable count")
+    if not isinstance(assignment, (tuple, list)) or not assignment:
+        raise AssertionError("Missing CryptoMiniSat 1-based SAT assignment")
+    if assignment[0] is not None or len(assignment) > n + 1:
+        raise AssertionError("Malformed CryptoMiniSat assignment indexing/length")
+    model = []
+    filled = 0
+    for var in range(1, n + 1):
+        value = assignment[var] if var < len(assignment) else None
+        if value is None:
+            value = False
+            filled += 1
+        elif type(value) is not bool:
+            raise AssertionError("Non-boolean CryptoMiniSat model value")
+        model.append(var if value else -var)
+    if not e._model_ok(original_rows, model):
+        raise AssertionError("Sparse CryptoMiniSat model fails original CNF replay")
+    return model, filled
+
+
 def cold_child(args):
     # Linux hosted ephemeral runner, never run on local owner machines.
     resource.setrlimit(resource.RLIMIT_AS, (MEM_LIMIT, MEM_LIMIT))
@@ -113,6 +142,7 @@ def cold_child(args):
         # Defense in depth: a second exact-source proof before native solver.
         assert residual == e._proof_and_residual(s["rows"], s["n"], selected)
     t = perf_counter()
+    sparse_model_defaults = 0
     if args.arm == "cadical195":
         from pysat.solvers import Solver
         solver = Solver(name="cadical195", bootstrap_with=s["rows"])
@@ -133,8 +163,11 @@ def cold_child(args):
         t = perf_counter()
         solved, assignment = solver.solve()
         solver_s = perf_counter() - t
-        model = ([i if bool(assignment[i]) else -i for i in range(1, s["n"] + 1)]
-                 if solved is True and assignment is not None else None)
+        if solved is True:
+            model, sparse_model_defaults = verified_cryptominisat_model(
+                assignment, s["n"], s["rows"])
+        else:
+            model = None
     t = perf_counter()
     if solved is True:
         if not model or not e._model_ok(s["rows"], model) or s["status_by_construction"] != "SAT":
@@ -152,6 +185,7 @@ def cold_child(args):
               "original_sha256": src["original_sha256"],
               "variant_sha256": s["variant_sha256"], "fit_sha256": args.fit_sha,
               "decision": decision, "native_equations": len(selected),
+              "sparse_model_defaults": sparse_model_defaults,
               "analysis_wall_s": analysis_s, "setup_wall_s": setup_s,
               "solver_wall_s": solver_s, "original_replay_wall_s": replay_s,
               "inner_full_cold_wall_s": perf_counter() - start,
