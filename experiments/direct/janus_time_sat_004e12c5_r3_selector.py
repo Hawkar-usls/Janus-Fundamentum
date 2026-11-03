@@ -250,7 +250,7 @@ def cold_child(case, arm, expected_source_sha):
         "production_C023":"UNCHANGED"},sort_keys=True),flush=True)
 
 def self_test():
-    _, psha = protocol()
+    p, psha = protocol()
     # Generator must be identical to frozen R1 on R1 inputs before R2 tests.
     for side,seed in ((19,202611030519),(25,202611030525),(37,202611030537)):
         a,b = grid(side,seed)
@@ -357,12 +357,12 @@ def benchmark(out):
                     "median_full_cold_s":median(x["full_cold_child_wall_s"] for x in rr) if ok else None,
                     "statuses":[x["outcome"]["status"] for x in rr]}
         sel=m["janus_pre_solve_selector"]
-        comp=[m[x]["median_full_cold_s"] for x in ARMS[1:]
+        comp=[m[x]["median_full_cold_s"] for x in ARMS[2:]
               if m[x]["verified_3_of_3"]]
         ratio=min(comp)/sel["median_full_cold_s"] if (
             sel["verified_3_of_3"] and comp) else None
         summary[case]={"arms":m,"ratio_fastest_verified_baseline":ratio,
-                       "censored_arms":[x for x in ARMS[1:] if not m[x]["verified_3_of_3"]],
+                       "censored_arms":[x for x in ARMS[2:] if not m[x]["verified_3_of_3"]],
                        "median_selector_s":sel["median_full_cold_s"]}
     report={"schema":"JANUS-E12C5-R3-RAW-RESULT-V1",
         "prereg_sha256":prereg_sha,
@@ -373,6 +373,8 @@ def benchmark(out):
         "source_manifest":sources,"records":result,"summary":summary,
         "censored_not_numeric_win":True,
         "R3_source_labels_not_used_in_training":True,
+        "external_competitor_arms":list(ARMS[2:]),
+        "direct_gf2_ablation_excluded_from_gain_denominator":True,
         "no_C023_promotion":True,"E12C4_autonomous_loop":"UNTOUCHED",
         "external_independent_witness":"NOT_DONE",
         "stage5_universal":"NOT_CLAIMED"}
