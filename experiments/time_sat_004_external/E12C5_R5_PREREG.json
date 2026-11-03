@@ -1,0 +1,184 @@
+{
+  "schema": "JANUS-E12C5-R5-PREREG-STRUCTURAL-TRANSFER-V1",
+  "stage": "R5 DEV ONLY; frozen before ANY R5 measurement",
+  "purpose": "Learn separate expected full-cold GF2 gain on complete non-grid exact-XOR, and choose between CryptoMiniSat-original and CaDiCaL-original on incomplete/mixed/non-XOR; test on fresh source SHA.",
+  "training": {
+    "r1_blob": "3457551135c85f45564cd9125d363aefc8de83f8",
+    "r2_blob": "41109aed354e5f627f7c5834adc4705fb5b878ac",
+    "r3_blob": "a9313a78b8929e7afc46a91cc384c0b1e7c78272",
+    "r4_postrun_blob": "5595992434ef82e8958e936f470e7f089db5922a",
+    "r4_fit_source_sha": "c5a9deafeddffe16f40ec1880f165fb83cfbb7198f5ff1d78890f02d956dc318",
+    "r4_training_warning": "13 R1-R3 original SHAs + 8 R4 original SHAs: R4 exact non-grid only TWO independent source SHAs, widths 4 and 5. This is sparse training, not evidence for all random XOR distributions.",
+    "data_leakage": "No R5 original SHA or SAT labels or times in fit/thresholds. R4 partial-XOR4 shares parent with R4 exact XOR4; is one related class, not an independent confirmation.",
+    "no_self_training": true,
+    "uncertainty_handling": "Non-grid GF2 route requires BOTH R4 exact non-grid width4+width5 original source groups to show >=1.25x GF2 speedup versus fastest successfully verified independent competitor at EACH of the two hosts, and incoming certified source has width 4 or 5, support-degree CV between 0.3 and 0.65, certified eq/n between 0.7 and 1.3. Otherwise fallback certified CryptoMiniSat native-XOR.",
+    "mixed_cnf": "R4 partial XOR width4 one prior source: use CaDiCaL only for exactly one damaged parity clause and complete block fraction >=0.98 with clause widths all 4, matching training class; otherwise ordinary original CNF CryptoMiniSat. No GF2 on incomplete formulas. For ordinary 3CNF choose CryptoMiniSat original; large mixed formulas not trained -> CryptoMiniSat original."
+  },
+  "feature_policy": {
+    "source_only": [
+      "variable_count",
+      "clause_count",
+      "literals_count",
+      "exact_cover_status",
+      "certified_equation_count",
+      "complete_group_fraction",
+      "incomplete_group_count",
+      "other_clause_count",
+      "complete_equation_width_histogram",
+      "support_degree_CV",
+      "equations_per_variable",
+      "original_clause_length_histogram",
+      "max_var_degree"
+    ],
+    "validation": "Only structural sign-mask grouping and parity-certificate checking; NEVER GF2 elimination, SAT solve, planted model, observed timings or R5 labels in selector.",
+    "bounded_rows": 35000,
+    "bounded_literals": 160000,
+    "bounded_variables": 2500,
+    "max_width": 6,
+    "profile_wall_s_limit": 2
+  },
+  "cohort": [
+    {
+      "id": "r5_xor3_96",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 96,
+      "width": 3,
+      "equations": 96,
+      "seed": 202611050396
+    },
+    {
+      "id": "r5_xor4_112a",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 112,
+      "width": 4,
+      "equations": 112,
+      "seed": 2026110504112
+    },
+    {
+      "id": "r5_xor4_160",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 160,
+      "width": 4,
+      "equations": 160,
+      "seed": 2026110504160
+    },
+    {
+      "id": "r5_xor5_144a",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 144,
+      "width": 5,
+      "equations": 144,
+      "seed": 2026110505144
+    },
+    {
+      "id": "r5_xor5_144b",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 144,
+      "width": 5,
+      "equations": 144,
+      "seed": 2026110605144
+    },
+    {
+      "id": "r5_xor6_128",
+      "kind": "EXACT_RANDOM_XOR",
+      "n": 128,
+      "width": 6,
+      "equations": 128,
+      "seed": 2026110506128
+    },
+    {
+      "id": "r5_partial4_112",
+      "kind": "DAMAGED_RANDOM_XOR",
+      "n": 112,
+      "width": 4,
+      "equations": 112,
+      "seed": 2026110507112,
+      "removed_clauses": 1
+    },
+    {
+      "id": "r5_partial5_144",
+      "kind": "DAMAGED_RANDOM_XOR",
+      "n": 144,
+      "width": 5,
+      "equations": 144,
+      "seed": 2026110507144,
+      "removed_clauses": 1
+    },
+    {
+      "id": "r5_mixed4_112",
+      "kind": "MIXED_XOR_PLUS_CNF",
+      "n": 112,
+      "width": 4,
+      "equations": 112,
+      "extra_3cnf": 48,
+      "seed": 2026110508112
+    },
+    {
+      "id": "r5_mixed5_144",
+      "kind": "MIXED_XOR_PLUS_CNF",
+      "n": 144,
+      "width": 5,
+      "equations": 144,
+      "extra_3cnf": 64,
+      "seed": 2026110508144
+    },
+    {
+      "id": "r5_three96",
+      "kind": "PLANTED_3CNF",
+      "n": 96,
+      "m": 336,
+      "seed": 2026110509096
+    },
+    {
+      "id": "r5_three144",
+      "kind": "PLANTED_3CNF",
+      "n": 144,
+      "m": 504,
+      "seed": 2026110509144
+    }
+  ],
+  "arms": [
+    "janus_r5_selector",
+    "janus_exact_gf2_ablation",
+    "cryptominisat_native_xor",
+    "cryptominisat_original_cnf",
+    "cadical195_original_cnf"
+  ],
+  "nonapplicable_arm_policy": "Native XOR and GF2 ablation MUST abstain if the entire original CNF is not an exact proven XOR cover; they never silently drop residual clauses.",
+  "frozen_gates": {
+    "correctness": "All new R5 selector SAT results MUST pass full original-CNF replay 3 of 3 on BOTH Ubuntu workers. No SAT model, no positive sample.",
+    "independent_XOR_gain": "At least TWO DISTINCT new widths 4 and 5, with each width having >=1 NEW source SHA showing >=1.20x speedup of R5 selector vs fastest FULLY VERIFIED external competing solver (CMS-native, CMS-original, CaDiCaL-original) on BOTH hosts, and no >10% regret across the other exact-XOR sources.",
+    "incomplete_mixed_no_regret": "No >10% regret relative fastest fully verified applicable external solver on all 6 non-exact sources on both hosts; any missing full verification -> NOT PASSED.",
+    "no_censored_wins": "Only baselines fully SAT-verified 3/3 can contribute to comparison. CPU/wall/timeouts right-censored. Claim strict all-baselines separately, NOT PASSED if any applicable external method fails/timeout.",
+    "independent_structure_coverage": "Not enough to test only 4/5 width exact; include width3/6 and mixed/partial/3CNF negatives. All source SHAs unique and disjoint from R1-R4.",
+    "stage5": "Even if R5 narrow full gate passes, fifth general SAT step needs independent external administrator with sealed multi-family challenge. Automatic C023 promotion PROHIBITED."
+  },
+  "matrix": {
+    "hosts": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "repeats": 3,
+    "order_seed": 202611051530,
+    "total_children": 360,
+    "cpu_s": 8,
+    "wall_s": 12,
+    "memory_bytes": 2147483648,
+    "job_timeout_minutes": 22,
+    "threads": 1,
+    "pins": {
+      "pycryptosat": "5.15.0",
+      "python-sat": "1.9.dev17"
+    },
+    "compute": "existing free standard hosted runners; no paid Rowan or heavy NAS/PC"
+  },
+  "independent_external_witness": {
+    "status": "NOT_CONNECTED",
+    "handoff": "experiments/time_sat_004_external/E12C5_R4_EXTERNAL_BLIND_HANDOFF.md",
+    "no_self_certification": true
+  },
+  "no_hidden_R5_data_use_in_train": true,
+  "no_retry_to_change_science_gate": true,
+  "E12C4": "KEEP_RUNNING_UNMODIFIED",
+  "C023": "UNCHANGED"
+}
