@@ -31,6 +31,88 @@ class E12C4AutopilotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             cycle.source_for_cycle(cycle.MAX_CYCLES)
 
+    def test_incremental_calibration_trains_on_every_completed_prior_only(self):
+        first = cycle.e.generate("coverage_0.6", 202611040000)
+        second = cycle.e.generate("coverage_0.67", 202611040100)
+        failed = cycle.e.generate("width4", 202611040900)
+        current = cycle.e.generate("coverage_0.699", 202611040200)
+        feat1 = {"n": 30, "m": 640, "lits": 3072, "eq": 12,
+                 "width6": 12, "coverage": 0.6, "residual": 256}
+        feat2 = {"n": 30, "m": 573, "lits": 2871, "eq": 12,
+                 "width6": 12, "coverage": 0.670157, "residual": 189}
+        def item(src, features, state, ratio=0.85):
+            return {"original_sha256": src["original_sha256"],
+                    "features": features, "cycle_status": state,
+                    "paired_full_cold": [{"raw_status": "VERIFIED",
+                        "xor_status": "VERIFIED", "raw_s": ratio,
+                        "xor_s": 1.0}] * len(cycle.e.VARIANTS)}
+        r1 = item(first, feat1, "COMPLETE")
+        r2 = item(second, feat2, "COMPLETE")
+        bad = item(failed, feat1, "PAUSED_SAFETY_FAILURE")
+        baseline = {"schema": cycle.SOURCE_STATE_SCHEMA,
+                    "history": []}
+        fit0 = cycle.trained_from_past(baseline)
+        self.assertEqual(len(fit0["profiles"]), 8)
+        state1 = {**baseline, "history": [r1]}
+        fit1 = cycle.trained_from_past(state1)
+        provenance1 = cycle.calibration_lineage(
+            state1, fit1, second["original_sha256"])
+        self.assertEqual(provenance1["prior_complete_original_count"], 1)
+        self.assertEqual(provenance1["total_profile_count"], 9)
+        state2 = {**baseline, "history": [r1, bad, r2]}
+        fit2 = cycle.trained_from_past(state2)
+        evidence = cycle.calibration_lineage(
+            state2, fit2, current["original_sha256"])
+        self.assertEqual(evidence["prior_complete_original_count"], 2)
+        self.assertEqual(evidence["total_profile_count"], 10)
+        self.assertEqual(evidence["excluded_failed_history_count"], 1)
+        self.assertNotIn(bad["original_sha256"],
+                         {p["original_sha256"] for p in fit2["profiles"]})
+        self.assertNotIn(current["original_sha256"],
+                         {p["original_sha256"] for p in fit2["profiles"]})
+        self.assertNotEqual(cycle.sha(cycle.encoded(fit1)),
+                            cycle.sha(cycle.encoded(fit2)))
+        tampered = dict(fit2)
+        tampered["profiles"] = [p for p in fit2["profiles"]
+                                if p["original_sha256"] != r2["original_sha256"]]
+        with self.assertRaisesRegex(AssertionError, "DROPPED_VERIFIED_HISTORY"):
+            cycle.calibration_lineage(
+                state2, tampered, current["original_sha256"])
+        tampered = dict(fit2)
+        tampered["profiles"] = fit2["profiles"] + [
+            {"original_sha256": current["original_sha256"],
+             "features": feat1, "censored": False, "gain": 100.0}]
+        with self.assertRaisesRegex(AssertionError, "SELF_TRAINING"):
+            cycle.calibration_lineage(
+                state2, tampered, current["original_sha256"])
+        tampered = dict(fit2)
+        tampered["profiles"] = fit2["profiles"] + [
+            {"original_sha256": bad["original_sha256"],
+             "features": feat1, "censored": False, "gain": 100.0}]
+        with self.assertRaises(AssertionError):
+            cycle.calibration_lineage(
+                state2, tampered, current["original_sha256"])
+
+    def test_past_training_is_not_cosmetic_model_selection_changes_on_good_evidence(self):
+        s = cycle.e.generate("coverage_0.75", 202611049301)
+        i = cycle.e.c1.source_index_all_widths(s["rows"], s["n"])
+        f = cycle.e.features(s["rows"], s["n"], [
+            eq for eq in i["equations"] if eq["width"] in (5, 6)])
+        def pair(gain):
+            return [{"raw_status": "VERIFIED", "xor_status": "VERIFIED",
+                     "raw_s": gain, "xor_s": 1.0}] * 3
+        history = []
+        for x in ("a"*64, "b"*64):
+            history.append({"original_sha256": x, "features": f,
+                            "cycle_status": "COMPLETE",
+                            "paired_full_cold": pair(2.0)})
+        strong = cycle.e.fit_development(history)
+        self.assertEqual(cycle.e.choose(s["rows"], s["n"], strong)["decision"],
+                         "XOR_INTERNAL_DEVELOPMENT")
+        weak = [{**r, "paired_full_cold": pair(0.9)} for r in history]
+        slow = cycle.e.fit_development(weak)
+        self.assertEqual(cycle.e.choose(s["rows"], s["n"], slow)["decision"], "RAW")
+
     def test_skip_replayed_run_no_new_cold_trials(self):
         with TemporaryDirectory() as d:
             f, out = Path(d)/"STATE.json", Path(d)/"out"
