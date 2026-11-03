@@ -301,8 +301,10 @@ def main():
         shas=[]
         for case,kind,n,w,e,seed,damage,extra in CASES:
             n_actual,rows=source(case)
-            if n!=n_actual or not r1.cnf_ok(rows,[k if k in set() else -k for k in []]):
-                pass # Source SAT proofs independently tested by exact GF2/CMS in CI.
+            if n!=n_actual:
+                raise AssertionError("R5_GENERATED_SOURCE_N_DRIFT")
+            # Each generator checks planted-SAT construction internally;
+            # the solver's returned model is rechecked against original CNF.
             h=r1.original_sha(rows,n)
             if h in oldshas:
                 raise AssertionError("R5_TRAIN_EVAL_COLLISION")
