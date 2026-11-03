@@ -1,0 +1,95 @@
+name: JANUS E12C5 R3 preregistered mod4 topology selector on unseen sources
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-r3-mod4-structure-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c5-r3-structure.yml
+      - experiments/time_sat_004_external/E12C5_R3_PREREG.json
+      - experiments/direct/janus_time_sat_004e12c5_r3_selector.py
+      - experiments/direct/janus_time_sat_004e12c5_r3_audit.py
+      - tests/test_time_sat_004e12c5_r3_selector.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-r3-frozen-structure-unseen-2-host
+  cancel-in-progress: false
+jobs:
+  source-bound-frozen-comparisons:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        host: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Enforce prereg and both training reports unchanged before any new measurement
+        run: |
+          echo "EXACT_R3_CANDIDATE_SHA=${{ github.sha }}"
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R3_PREREG.json)" = '5e72bb67a201112b03c1f1ef317b9de0f1e61581'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json)" = '3457551135c85f45564cd9125d363aefc8de83f8'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R2_POSTRUN_REPORT.json)" = '41109aed354e5f627f7c5834adc4705fb5b878ac'
+          test "$(git hash-object experiments/direct/janus_time_sat_004e12c5_profit_test.py)" = '192dc83338cb25dde0bc36f276d2ff52325c93e1'
+          sha256sum experiments/time_sat_004_external/E12C5_R3_PREREG.json
+          sha256sum experiments/direct/janus_time_sat_004e12c5_r3_selector.py
+      - name: Install pinned open-source baseline SAT solvers, all public hosted
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Verify pre-solve grid topology, 6 source SHA, R1 compatibility and abstention
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c5_r3_selector.py' -v
+      - name: Source-independent exact XOR plus same-admin negative controls
+        run: python experiments/direct/janus_time_sat_004e12c5_r3_selector.py --self-test
+      - name: Fixed unseen 6 source x 5 cold arms x 3 randomized repeats
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r3_selector.py
+          --out evidence/time_sat_004e12c5_r3/${{ matrix.host }}
+      - name: Persist full failures and successes without overwriting E12C4
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r3-${{ matrix.host }}-${{ github.run_id }}
+          path: |
+            evidence/time_sat_004e12c5_r3/${{ matrix.host }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_R3_PREREG.json
+          retention-days: 90
+          if-no-files-found: warn
+  audit-without-retraining:
+    needs: source-bound-frozen-comparisons
+    if: ${{ needs['source-bound-frozen-comparisons'].result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-r3-*
+          path: evidence/r3-artifacts
+          merge-multiple: false
+      - name: Reconstruct complete cold medians and winning distinct 33 and 41 sides
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r3_audit.py
+          --report-root evidence/r3-artifacts
+          --out evidence/e12c5-r3-audit
+      - name: Archive cross-host audit with negative results intact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r3-audit-${{ github.run_id }}
+          path: evidence/e12c5-r3-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: warn

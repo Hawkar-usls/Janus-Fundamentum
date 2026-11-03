@@ -1,0 +1,139 @@
+{
+  "schema": "JANUS-E12C5-R3-STRUCTURAL-MOD4-PREREG-V1",
+  "status": "FROZEN_BEFORE_ANY_R3_MEASUREMENT",
+  "rationale": "Posthoc R1+R2: observed CDCL HARD on odd sides 21,25,29,37 (1 mod 4) and often FAST on 19,23,39 (3 mod 4). This is a hypothesis, NOT established mathematical law. R2 size-only n=500 rule failed (21 timeout and 39 regret). R3 pre-registers falsification on previously untouched sizes and separate original SHA.",
+  "training_only": [
+    {
+      "source": "experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json",
+      "git_blob_sha1": "3457551135c85f45564cd9125d363aefc8de83f8",
+      "role": "exploratory historical measured evidence"
+    },
+    {
+      "source": "experiments/time_sat_004_external/E12C5_R2_POSTRUN_REPORT.json",
+      "git_blob_sha1": "41109aed354e5f627f7c5834adc4705fb5b878ac",
+      "role": "negative boundary observations and new posthoc parity-class hypothesis"
+    }
+  ],
+  "pre_solve_selector": {
+    "preconditions": "No trial outcome, no planted SAT model, no solver run, no timing observation may be used before decision. Derive topology from input CNF only.",
+    "rules": [
+      "if n<400: choose original-CNF CaDiCaL195",
+      "otherwise build exact complete parity blocks from EVERY original CNF clause, with bounded 140000 literal scanning and original source unchanged; if not exact: original CNF CryptoMiniSat",
+      "validate parity-equation supports are exactly the 2D grid five-neighbor toggle topology for side=sqrt(n), no non-grid shape inference",
+      "on exact grid with odd side%4==1 choose JANUS standalone GF2, including recognition and original model replay",
+      "on exact grid with odd side%4==3 choose original CNF CaDiCaL195",
+      "on otherwise valid exact XOR grid choose CryptoMiniSat native-XOR"
+    ],
+    "max_literal_scan_research_only": 140000,
+    "previous_max_literal_scan": 120000,
+    "max_original_clauses": 30000,
+    "max_variables": 5000,
+    "max_clause_width": 6,
+    "unmodified_C023": true,
+    "decision_can_be_rechecked_from_input_only": true
+  },
+  "new_unseen_cases": [
+    {
+      "id": "r3_grid_17",
+      "side": 17,
+      "seed": 202611030817,
+      "expect_engine": "cadical195_original_cnf",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "r3_grid_27",
+      "side": 27,
+      "seed": 202611030827,
+      "expect_engine": "cadical195_original_cnf",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "r3_grid_33",
+      "side": 33,
+      "seed": 202611030833,
+      "expect_engine": "janus_gf2",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "r3_grid_35",
+      "side": 35,
+      "seed": 202611030835,
+      "expect_engine": "cadical195_original_cnf",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "r3_grid_41a",
+      "side": 41,
+      "seed": 202611030841,
+      "expect_engine": "janus_gf2",
+      "status_by_construction": "SAT"
+    },
+    {
+      "id": "r3_grid_41b",
+      "side": 41,
+      "seed": 202611040841,
+      "expect_engine": "janus_gf2",
+      "status_by_construction": "SAT"
+    }
+  ],
+  "source_generator": "Same pinned R1 row-major full parity CNF generator, via explicit 5-neighbor grid toggle supports and random.Random(seed).getrandbits(1); compare against archived R1 originals for compatibility before any measurement.",
+  "negative_controls": [
+    "Drop one original clause from new R3 grid33 and grid41: if exact proof fails, selector MUST choose unmodified original CryptoMiniSat",
+    "Alter just one support in a complete cover: topology check MUST decline grid-specific mod4 shortcut and choose unmodified original CryptoMiniSat",
+    "Known R1 UNSAT GF2 witness must replay same-admin only, never counted as new R3 performance or external independent proof",
+    "Verify R1+R2 training report git blobs before R3 source generation"
+  ],
+  "benchmark": {
+    "hosts": [
+      "ubuntu-22.04",
+      "ubuntu-24.04"
+    ],
+    "provider": "GitHub-hosted standard public runners",
+    "trial_arms": [
+      "janus_pre_solve_selector",
+      "janus_gf2",
+      "cryptominisat_native_xor",
+      "cryptominisat_original_cnf",
+      "cadical195_original_cnf"
+    ],
+    "separate_internal_gf2_ablation": "janus_gf2",
+    "competing_baselines_for_gain": [
+      "cryptominisat_native_xor",
+      "cryptominisat_original_cnf",
+      "cadical195_original_cnf"
+    ],
+    "repetitions_per_case_arm_host": 3,
+    "new_case_count": 6,
+    "total_new_cold_children": 180,
+    "order_random_seed": 202611031322,
+    "limits": {
+      "child_cpu_s": 8,
+      "child_wall_s": 12,
+      "memory_bytes": 2147483648,
+      "job_timeout_minutes": 18,
+      "threads": 1
+    },
+    "pins": {
+      "python-sat": "1.9.dev17",
+      "pycryptosat": "5.15.0"
+    },
+    "time_measurement": "Full parent-measured cold subprocess wall: imports/startup + original CNF generation/verification + pre-solve certification/selection + engine solve + exact SAT model replay on original CNF + serialization.",
+    "blind_external": "NOT_AVAILABLE"
+  },
+  "frozen_gates": {
+    "per_source_per_host": "All three selector repetitions must be SAT_VERIFIED; compare median against fastest successfully SAT_VERIFIED 3/3 of EXTERNAL competing baselines only; direct JANUS GF2 ablation is NOT in denominator. A baseline timeout is right-censored and cannot be assigned a finite solve time or fake gain.",
+    "narrow_hypothesis": "At least TWO DISTINCT NEW mod4==1 SIDE SIZES (33 AND 41) show selector >=1.20x against fastest successfully verified external competitor on BOTH hosts, and every other new source is within 5% regret of best verified external competitor on BOTH hosts, with every original SAT answer checked against all original CNF clauses.",
+    "strong_all_control_gate": "Every external baseline must complete all 3/3 trials on every source; if any censored, strict all-control gate must remain NOT PASSED even when partial comparison shows gain.",
+    "abstention_gate": "Any incomplete parity block, non-Lightsout topology or resource cap => no GF2 selection, retain unchanged original CNF.",
+    "conclusion_ceiling": "Even if narrow gate passed, no claim of general 3-SAT acceleration, P=NP, Stage5 general SAT gate or external independently sealed proof."
+  },
+  "resources": {
+    "no_paid_infra": true,
+    "no_heavy_NAS": true,
+    "no_owner_PC": true,
+    "do_not_pause_E12C4": true,
+    "production_C023_unchanged": true,
+    "no_self_merge": true
+  },
+  "negative_outcomes_are_results": true
+}
