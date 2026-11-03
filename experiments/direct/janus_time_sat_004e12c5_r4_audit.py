@@ -22,6 +22,12 @@ def check(hostdocs):
     if len(hostdocs)!=2:
         raise AssertionError("R4_BOTH_HOSTS_REQUIRED")
     prereg,psha=model.load_frozen()
+    # The privileged auditor fits from immutable R1-R3 evidence itself.
+    # A worker may not manufacture a more favorable FIT.json just by
+    # replacing its SHA field in both child and parent receipts.
+    independently_rebuilt_fit_sha=sha256(model.canonical(model.train())).hexdigest()
+    if any(doc.get("fit_sha256")!=independently_rebuilt_fit_sha for doc in hostdocs):
+        raise AssertionError("R4_CROSS_HOST_FIT_NOT_REPRODUCIBLE_FROM_PAST")
     expected=[c["id"] for c in prereg["evaluation_cohort"]]
     if expected!=cold.CASES or len(expected)!=8:
         raise AssertionError("R4_SOURCE_SET_CHANGED")
