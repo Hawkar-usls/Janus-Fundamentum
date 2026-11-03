@@ -136,8 +136,7 @@ class E12C4AutopilotTests(unittest.TestCase):
         with TemporaryDirectory() as d:
             f, out = Path(d)/"STATE.json", Path(d)/"out"
             self.make_state(f)
-            model = {"schema": cycle.e.SCHEMA + "-DEV-FIT", "profiles": [],
-                     "min_gain":1.5, "min_matching_originals":2}
+            model = cycle.e.fit_archived_e12c3()  # Eight immutable E12C3 baseline profiles
             def fake_child(command, **kwargs):
                 args = dict(zip(command[3::2], command[4::2]))
                 return SimpleNamespace(returncode=0,
