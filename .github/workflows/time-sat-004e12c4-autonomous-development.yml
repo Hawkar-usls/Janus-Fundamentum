@@ -178,6 +178,53 @@ jobs:
                   raise SystemExit("FAIL_CLOSED: missing source / fit SHA")
               if hexsha(pathlib.Path("output/FIT.json").read_bytes()) != report["fit_sha256"]:
                   raise SystemExit("FAIL_CLOSED: model SHA mismatch")
+              # This writer rechecks the READ-ONLY worker's learning lineage.
+              # It must contain EVERY earlier COMPLETE SHA once, NO failed,
+              # current or hidden source, plus exactly eight exposed C3 samples.
+              fit = json.loads(pathlib.Path("output/FIT.json").read_bytes())
+              profiles = fit.get("profiles", [])
+              trained = [p["original_sha256"] for p in profiles]
+              previous = [h for h in state["history"]
+                          if h["cycle_status"] == "COMPLETE"]
+              prior_shas = [h["original_sha256"] for h in previous]
+              rejected_shas = {h["original_sha256"] for h in state["history"]
+                               if h["cycle_status"] != "COMPLETE"}
+              c = report.get("calibration")
+              if not isinstance(c, dict):
+                  raise SystemExit("FAIL_CLOSED: missing per-cycle calibration attestation")
+              calc_sha = lambda keys: hexsha((json.dumps(
+                  sorted(keys), sort_keys=True, separators=(",", ":")) + "\\n").encode())
+              if (len(set(trained)) != len(trained) or len(set(prior_shas)) != len(prior_shas)
+                  or len(profiles) != len(previous) + 8
+                  or not set(prior_shas).issubset(set(trained))
+                  or report["original_sha256"] in set(trained)
+                  or set(trained) & rejected_shas):
+                  raise SystemExit("FAIL_CLOSED: prior sources missing, duplicate or leaked")
+              checks = {
+                  "prior_complete_original_count": len(previous),
+                  "prior_complete_sha256": calc_sha(prior_shas),
+                  "baseline_original_count": 8,
+                  "total_profile_count": len(profiles),
+                  "trained_originals_sha256": calc_sha(trained),
+                  "excluded_failed_history_count": len(state["history"]) - len(previous),
+                  "prior_censored_count": sum(p["censored"] for p in profiles
+                    if p["original_sha256"] in set(prior_shas)),
+                  "current_original_excluded": True,
+                  "heldout_excluded": True,
+                  "training_past_only": True,
+              }
+              if any(c.get(k) != v for k, v in checks.items()):
+                  raise SystemExit("FAIL_CLOSED: model lineage evidence != previous state")
+              profile_by_sha = {p["original_sha256"]: p for p in profiles}
+              for h in previous:
+                  p = profile_by_sha[h["original_sha256"]]
+                  expected_censored = any(z["raw_status"] != "VERIFIED" or
+                     z["xor_status"] != "VERIFIED" for z in h["paired_full_cold"])
+                  if p["features"] != h["features"] or p["censored"] != expected_censored:
+                      raise SystemExit("FAIL_CLOSED: historical feature or censor drift")
+              print("E12C4_CALIBRATION_VERIFIED", len(previous),
+                    "prior confirmed originals; baseline 8; failed excluded",
+                    len(rejected_shas))
               if status == "COMPLETE":
                   if len(report.get("paired_full_cold", [])) != 3:
                       raise SystemExit("FAIL_CLOSED: missing RAW/native matched comparisons")
@@ -193,6 +240,7 @@ jobs:
                        "features": report["features"],
                        "fit_sha256": report["fit_sha256"],
                        "paired_full_cold": report.get("paired_full_cold", []),
+                       "calibration": report["calibration"],
                        "full_receipt_sha256": hexsha(report_bytes)}
               state["history"].append(short)
               if status == "COMPLETE":
