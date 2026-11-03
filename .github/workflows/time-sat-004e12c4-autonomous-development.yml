@@ -1,0 +1,182 @@
+name: JANUS E12C4 self-continuing bounded development loop
+on:
+  schedule:
+    - cron: '37 3,15 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - automation/e12c4-cycle-dispatch-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c4-autonomous-development.yml
+
+permissions: {}
+concurrency:
+  group: janus-e12c4-global-autonomous-research-loop-single-writer
+  cancel-in-progress: false
+
+jobs:
+  next-development-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout isolated research candidate (no write token)
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-profit-aware-dev-20261102
+          path: src
+          persist-credentials: false
+      - name: Checkout append-only state (no write token)
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-loop-state
+          path: state
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pre-used pinned open-source solvers
+        run: python -m pip install --disable-pip-version-check --only-binary=:all: 'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Record exact research SHA
+        run: echo "E12C4_RESEARCH_SHA=$(git -C src rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Always recheck proof and state-machine invariants
+        working-directory: src
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4*.py' -v
+      - name: Execute exactly the next bounded DEV cycle, never E12C4 holdout
+        working-directory: src
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
+          --state "$GITHUB_WORKSPACE/state/data/time_sat_004e12c4_loop/STATE.json"
+          --out "$GITHUB_WORKSPACE/output"
+      - name: Keep all reports, including negative outcomes, separate from production
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c4-autonomous-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: warn
+
+  persist-audited-state:
+    needs: next-development-cycle
+    if: needs.next-development-cycle.result == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout only state for write - NO experimental source code executed
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-loop-state
+          path: state
+          persist-credentials: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: e12c4-autonomous-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output
+      - name: Verify exact untrusted receipt schema, limits, duplicate IDs and CAS then append
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, shutil
+          root = pathlib.Path("state/data/time_sat_004e12c4_loop")
+          state_path = root / "STATE.json"
+          old = state_path.read_bytes()
+          state = json.loads(old)
+          report_path = pathlib.Path("output/REPORT.json")
+          report_bytes = report_path.read_bytes()
+          report = json.loads(report_bytes)
+          hexsha = lambda x: hashlib.sha256(x).hexdigest()
+          if state.get("schema") != "JANUS-E12C4-AUTOPILOT-STATE-V1":
+              raise SystemExit("FAIL_CLOSED: state schema mismatch")
+          if report.get("schema") != "JANUS-E12C4-AUTOPILOT-CYCLE-V1":
+              raise SystemExit("FAIL_CLOSED: report schema mismatch")
+          if report.get("run_id") != os.environ["GITHUB_RUN_ID"]:
+              raise SystemExit("FAIL_CLOSED: wrong GitHub run ID")
+          if report.get("previous_state_sha256") != hexsha(old):
+              raise SystemExit("FAIL_CLOSED: state CAS mismatch")
+          if report.get("cycle_index") != state.get("next_cycle"):
+              raise SystemExit("FAIL_CLOSED: cycle replay / out of order")
+          if report.get("heldout_sources_timed") != 0 or report.get("promotion") != "PROHIBITED":
+              raise SystemExit("FAIL_CLOSED: promotion or frozen holdout attempted")
+          if report.get("main_C023") != "UNCHANGED" or report.get("worker") != "GITHUB_HOSTED_PUBLIC_ONLY":
+              raise SystemExit("FAIL_CLOSED: unauthorized execution target")
+          if (report.get("cpu_child_limit_s"), report.get("wall_child_limit_s"),
+              report.get("address_space_bytes")) != (12, 18, 2147483648):
+              raise SystemExit("FAIL_CLOSED: compute budget drift")
+          status = report.get("cycle_status")
+          if status in ("SKIPPED_PAUSED", "SKIPPED_DUPLICATE_RUN"):
+              print("NOOP", status)
+              raise SystemExit(0)
+          if status not in ("COMPLETE", "PAUSED_SAFETY_FAILURE", "PAUSED_BUDGET_LIMIT"):
+              raise SystemExit("FAIL_CLOSED: unexpected scientific outcome")
+          if report["run_id"] in state.get("completed_run_ids", []):
+              print("ALREADY_COMMITTED", report["run_id"])
+              raise SystemExit(0)
+          if status in ("COMPLETE", "PAUSED_SAFETY_FAILURE"):
+              if state["mode"] != "DEVELOPMENT_ONLY":
+                  raise SystemExit("FAIL_CLOSED: active write while paused")
+              records = report.get("records", [])
+              if len(records) != 12:
+                  raise SystemExit("FAIL_CLOSED: expected exact 3 variants x 4 methods")
+              keys = {(r["variant"], r["arm"]) for r in records}
+              if keys != {(v, a) for v in
+                      ("as_emitted", "global_shuffle", "renamed_polarity") for a in
+                      ("raw_cms", "certified_native", "selected_dev", "cadical195")}:
+                  raise SystemExit("FAIL_CLOSED: cold matrix missing/duplicated")
+              if report.get("original_sha256") in {z["original_sha256"] for z in state["history"]}:
+                  raise SystemExit("FAIL_CLOSED: original source SHA reused")
+              if len(report.get("original_sha256", "")) != 64 or len(report.get("fit_sha256", "")) != 64:
+                  raise SystemExit("FAIL_CLOSED: missing source / fit SHA")
+              if hexsha(pathlib.Path("output/FIT.json").read_bytes()) != report["fit_sha256"]:
+                  raise SystemExit("FAIL_CLOSED: model SHA mismatch")
+              if status == "COMPLETE":
+                  if len(report.get("paired_full_cold", [])) != 3:
+                      raise SystemExit("FAIL_CLOSED: missing RAW/native matched comparisons")
+                  if any(r["outcome"]["status"] not in
+                         ("SAT_VERIFIED", "UNSAT_INTERNAL_EXHAUSTIVE_ONLY", "UNKNOWN_CPU_LIMIT",
+                          "UNKNOWN_WALL_LIMIT", "UNKNOWN_NO_ANSWER") for r in records):
+                      raise SystemExit("FAIL_CLOSED: hidden invalid child result")
+              short = {"cycle_index": report["cycle_index"],
+                       "cycle_status": status, "run_id": report["run_id"],
+                       "original_sha256": report["original_sha256"],
+                       "source_code_sha": report.get("source_code_sha"),
+                       "family": report["family"], "seed": report["seed"],
+                       "features": report["features"],
+                       "fit_sha256": report["fit_sha256"],
+                       "paired_full_cold": report.get("paired_full_cold", []),
+                       "full_receipt_sha256": hexsha(report_bytes)}
+              state["history"].append(short)
+              if status == "COMPLETE":
+                  state["next_cycle"] += 1
+              else:
+                  state["mode"] = status
+          elif status == "PAUSED_BUDGET_LIMIT":
+              state["mode"] = status
+          state["completed_run_ids"].append(report["run_id"])
+          state["last_report_sha256"] = hexsha(report_bytes)
+          filename = ("%06d" % report["cycle_index"]) + "__" + report["run_id"] + ".json"
+          dest = root / "cycles" / filename
+          dest.parent.mkdir(parents=True, exist_ok=True)
+          if dest.exists():
+              raise SystemExit("FAIL_CLOSED: existing immutable report")
+          dest.write_bytes(report_bytes)
+          root.mkdir(parents=True, exist_ok=True)
+          state_path.write_text(json.dumps(state, sort_keys=True, indent=2) + "\n")
+          print("JANUS_E12C4_SCIENCE_HISTORY_PERSISTED", status, filename, hexsha(report_bytes))
+          
+          PY
+      - name: Append-only push to research state branch - NEVER main or C023
+        working-directory: state
+        run: |
+          git config user.name 'JANUS E12C4 GitHub Actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/time_sat_004e12c4_loop
+          if git diff --cached --quiet; then
+            echo 'No new state: paused or duplicate run'
+            exit 0
+          fi
+          git commit -m "e12c4(auto-dev): append source SHA, censored receipts, safe-next-cycle state [skip ci]"
+          git push origin HEAD:research/time-sat-004e12c4-loop-state
