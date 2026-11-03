@@ -24,7 +24,7 @@
     "report_label": "Observed log(median full cold GF2 / minimum median of 3/3 verified independent CryptoMiniSat native/original or CaDiCaL). Each CPU-censored baseline is missing, NEVER treated as completed.",
     "pinned_model": "Deterministic bounded k-nearest-neighbor predictor over normalized logged structural features; one vote per original SHA and one aggregate per equivalent support topology/side. Fit only on historical completed validated observations.",
     "counterfactual_regret": "Include empirical disagreement and leave-one-grid-size-out prediction error in safety margin; if too few independent support sizes, uncertain class or estimated speedup lower bound <1.20, abstain.",
-    "out_of_domain": "No training sources outside exact grid-family; all synthetic random-XOR and partial/mixed CNFs route to plain CryptoMiniSat without GF2, unless independently supported by future externally validated data. This is an explicit abstention, NOT a proof of generality.",
+    "out_of_domain": "No training sources outside exact grid family; all synthetic random-XOR and partial/mixed CNFs route to plain original-CNF CryptoMiniSat without GF2. For certified grid but uncertain predicted gain, select CryptoMiniSat NATIVE XOR exact-block solver instead of unsafe slow raw. This is abstention from JANUS GF2, not generality proof.",
     "timeout_or_child_failure": "Never use as a numerical speedup or positive training label.",
     "sparse_feature_computation_cap": "<=160000 original literals, <=35000 clauses, <=2500 vars, max clause width<=6, bounded 2 seconds for feature extraction within full cold measurement.",
     "explicit_frozen_model": {
@@ -44,7 +44,7 @@
       "weight": "1/(0.03+distance)^2 normalized across five selected side lengths",
       "predict": "exp(weighted arithmetic mean log of historical positive GF2 and fastest verified external median cold times respectively), both estimated times recorded pre-solving",
       "local_lower_bound": "minimum of observed nearest-neighbor 25th percentile gain ratio and estimated_gain * exp(-median(abs(log observed gain - leave-one-side-out predicted log gain)))",
-      "choose_GF2": "only when full exact XOR and proven source-grid topology, >=5 distinct completed side-size groups, estimated_gain >=1.40 and robust_lower_bound >=1.20 and pre-solve structural time <=2s; otherwise use CryptoMiniSat on unchanged original CNF (not CaDiCaL).",
+      "choose_GF2": "only when full exact XOR and proven source-grid topology, >=5 distinct completed size groups, estimated_gain >=1.40 and robust_lower_bound >=1.20 and pre-solve structural time <=2s. If certified but uncertain, use CryptoMiniSat NATIVE XOR on exactly reconstructed full parity blocks, with original CNF SAT witness replay. If not certified or unknown-family, use CryptoMiniSat on unchanged ORIGINAL CNF, no GF2.",
       "unknown_family": "Always abstain from GF2; no new non-grid training samples at R4 decision-time.",
       "future_policy": "All R4 data are evaluation only, not added to training. Changes require a separately preregistered R5 study."
     },
@@ -118,7 +118,7 @@
   "rules": {
     "source_generator": "Pure deterministic SHA-pinned generator R1 complete XOR Lights-out grid and R4 random planted parity/3SAT with random.Random seed, unique original CNF SHA; never reuse R1/R2/R3 samples.",
     "inputs_to_selector": "Only original n and rows from CNF, no source ID, seed, expected SAT, solver output or run timing.",
-    "selector_behavior": "IF incomplete full XOR coverage OR out-of-distribution topology OR risky prediction THEN CryptoMiniSat on unchanged original CNF. IF exact XOR and sufficiently certain lower-bound predicted speedup >1.20 THEN standalone certified GF2, replay original CNF. The decision and estimated GF2/baseline cold time are recorded in the SAT receipt.",
+    "selector_behavior": "For complete certified XOR, compute frozen prior-only cost model. GF2 only if robust lower bound >=1.20 and predicted mean >=1.40 and topology support. Otherwise native-XOR CryptoMiniSat (all parity blocks exact); for any incomplete cover or unknown non-grid domain, original-CNF CryptoMiniSat. Every outcome is replayed on original CNF.",
     "negative_controls": "Remove one parity clause; polarity permutation that breaks grid support must no longer be called Lights-out; random exact-XOR but non-grid should abstain; normal planted 3SAT should abstain; no C023 or E12C4 writes.",
     "signed_time": "Parent-measured full cold subprocess wall includes Python startup, CNF generation, structural profiling, exact-cover inspection, decision, solver startup, original CNF replay and JSON serialization; separately report profiling wall.",
     "max_workers": "2 GitHub-hosted standard Ubuntu jobs; no paid/owner PC/NAS.",
