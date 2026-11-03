@@ -26,7 +26,37 @@
     "counterfactual_regret": "Include empirical disagreement and leave-one-grid-size-out prediction error in safety margin; if too few independent support sizes, uncertain class or estimated speedup lower bound <1.20, abstain.",
     "out_of_domain": "No training sources outside exact grid-family; all synthetic random-XOR and partial/mixed CNFs route to plain CryptoMiniSat without GF2, unless independently supported by future externally validated data. This is an explicit abstention, NOT a proof of generality.",
     "timeout_or_child_failure": "Never use as a numerical speedup or positive training label.",
-    "sparse_feature_computation_cap": "<=160000 original literals, <=35000 clauses, <=2500 vars, max clause width<=6, bounded 2 seconds for feature extraction within full cold measurement."
+    "sparse_feature_computation_cap": "<=160000 original literals, <=35000 clauses, <=2500 vars, max clause width<=6, bounded 2 seconds for feature extraction within full cold measurement.",
+    "explicit_frozen_model": {
+      "structural_features": [
+        "log1p_n",
+        "log1p_clauses",
+        "log1p_literal_occurrences",
+        "mean_original_clause_width",
+        "certified_equations_per_variable",
+        "mean_certified_support_width",
+        "support_variable_degree_CV",
+        "rhs_bias_from_half",
+        "is_proven_square_lightsout_topology"
+      ],
+      "distance": "Euclidean over fixed scaled features (divide log1p n by 2, log1p clauses by 2, log1p lits by 2, mean widths by 3, certified ratio by 2, mean support width by 6, degree CV by 2, RHS bias unscaled, topology mismatch adds 3). No target-aware fitting or scaling.",
+      "neighbors": "Five nearest DIFFERENT historical odd-grid side lengths; aggregate independent source SHAs on same grid side BEFORE fitting (two 41 examples become one side group). Distances based only on frozen structural features.",
+      "weight": "1/(0.03+distance)^2 normalized across five selected side lengths",
+      "predict": "exp(weighted arithmetic mean log of historical positive GF2 and fastest verified external median cold times respectively), both estimated times recorded pre-solving",
+      "local_lower_bound": "minimum of observed nearest-neighbor 25th percentile gain ratio and estimated_gain * exp(-median(abs(log observed gain - leave-one-side-out predicted log gain)))",
+      "choose_GF2": "only when full exact XOR and proven source-grid topology, >=5 distinct completed side-size groups, estimated_gain >=1.40 and robust_lower_bound >=1.20 and pre-solve structural time <=2s; otherwise use CryptoMiniSat on unchanged original CNF (not CaDiCaL).",
+      "unknown_family": "Always abstain from GF2; no new non-grid training samples at R4 decision-time.",
+      "future_policy": "All R4 data are evaluation only, not added to training. Changes require a separately preregistered R5 study."
+    },
+    "data_leakage_guards": {
+      "training_only_sha256": "R1/R2/R3 report git blobs must match prereg and each old original recomputed SHA must match archived source SHA",
+      "all_past_labels_grouped_by_original_sha": true,
+      "same_grid_size_41_seeds_grouped_before_kNN": true,
+      "self_training_prohibited": true,
+      "no_feature_scaler_trained_on_R4": true,
+      "no_holdout_probe": true,
+      "no_candidate_predictions_recomputed_after_R4_outcomes": true
+    }
   },
   "evaluation_cohort": [
     {
