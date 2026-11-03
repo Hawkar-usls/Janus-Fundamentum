@@ -1,0 +1,98 @@
+name: JANUS E12C5 R5 frozen cross-family exact-XOR and incomplete-CNF selector
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-r5-crossfamily-20261103
+    paths:
+      - .github/workflows/time-sat-004e12c5-r5-crossfamily.yml
+      - experiments/direct/janus_time_sat_004e12c5_r5_model.py
+      - experiments/direct/janus_time_sat_004e12c5_r5_benchmark.py
+      - experiments/direct/janus_time_sat_004e12c5_r5_audit.py
+      - experiments/time_sat_004_external/E12C5_R5_PREREG.json
+      - tests/test_time_sat_004e12c5_r5_transfer.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-r5-unseen-exact-incomplete-MIXED-CNF-2-host
+  cancel-in-progress: false
+jobs:
+  full-cold-unseen-cohort:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        host: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: SHA-pin ALL prior experiments and untouched R5 preregistration
+        run: |
+          echo "GITHUB_SHA=${{ github.sha }}"
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R5_PREREG.json)" = 'f38833efaa91b97a7669df440b8890b2a2b4376b'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json)" = '3457551135c85f45564cd9125d363aefc8de83f8'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R2_POSTRUN_REPORT.json)" = '41109aed354e5f627f7c5834adc4705fb5b878ac'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R3_POSTRUN_REPORT.json)" = 'a9313a78b8929e7afc46a91cc384c0b1e7c78272'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R4_POSTRUN_REPORT.json)" = '5595992434ef82e8958e936f470e7f089db5922a'
+          sha256sum experiments/time_sat_004_external/E12C5_R5_PREREG.json
+      - name: Install pinned SAT controls on public standard hosted runners
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Fit source-SHA-distinct R4-only non-grid and incomplete-CNF cost classes
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r5_model.py
+          --fit-output evidence/R5_FIT.json
+      - name: Pre-benchmark nine fail-closed source/tamper/route tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c5_r5_transfer.py' -v
+      - name: Prove all 12 source SHAs are new and prior-only model fixed
+        run: python experiments/direct/janus_time_sat_004e12c5_r5_model.py --preflight
+      - name: 12 new SAT sources x 5 arms x 3 randomized cold full-model checks
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r5_benchmark.py
+          --fit evidence/R5_FIT.json
+          --out evidence/e12c5_r5/${{ matrix.host }}
+      - name: Preserve every positive and negative frozen receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r5-${{ matrix.host }}-${{ github.run_id }}
+          path: |
+            evidence/R5_FIT.json
+            evidence/e12c5_r5/${{ matrix.host }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_R5_PREREG.json
+          retention-days: 90
+          if-no-files-found: warn
+  exact-source-cross-host-frozen-science-audit:
+    needs: full-cold-unseen-cohort
+    if: ${{ needs['full-cold-unseen-cohort'].result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-r5-*
+          path: evidence/r5-incoming
+          merge-multiple: false
+      - name: Refit from pinned R4 and independently recompute all 360 cold source receipts
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r5_audit.py
+          --reports evidence/r5-incoming
+          --out evidence/r5-final-audit
+      - name: Preserve success AND negative science gate without promotion
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r5-frozen-audit-${{ github.run_id }}
+          path: evidence/r5-final-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: warn
