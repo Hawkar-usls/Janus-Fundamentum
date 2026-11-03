@@ -26,6 +26,8 @@ from janus_time_sat_004d1_xor import (_gauss_with_linear_combination,
     independently_replay_unsat_combination, check_original_cnf)
 
 PREREG = ROOT / "experiments/time_sat_004_external/E12C5_R2_PREREG.json"
+R1_EVIDENCE = ROOT / "experiments/time_sat_004_external/E12C5_R1_POSTRUN_REPORT.json"
+FROZEN_R1_EVIDENCE_BLOB_SHA1 = "3457551135c85f45564cd9125d363aefc8de83f8"
 FROZEN_PROTOCOL_BLOB_SHA1 = "6d31e3e716a9c09a26a83c7dceb06871e627f314"
 ARMS = ("janus_pre_solve_selector", "janus_gf2",
         "cryptominisat_native_xor", "cryptominisat_original_cnf",
@@ -47,6 +49,16 @@ def protocol():
     git_blob = sha1(b"blob " + str(len(raw)).encode() + bytes([0]) + raw).hexdigest()
     if git_blob != FROZEN_PROTOCOL_BLOB_SHA1:
         raise AssertionError("R2 FROZEN PREREG BLOB CHANGED")
+    r1raw = R1_EVIDENCE.read_bytes()
+    r1blob = sha1(b"blob " + str(len(r1raw)).encode() + bytes([0]) + r1raw).hexdigest()
+    if r1blob != FROZEN_R1_EVIDENCE_BLOB_SHA1:
+        raise AssertionError("R2 TRAINING EVIDENCE MUTATED")
+    r1data = json.loads(r1raw)
+    if (r1data["original_gate"]["verdict"] != "NOT_PASSED"
+        or len(r1data["posthoc_rounded_median_seconds"]) != 12
+        or set(r1data["source_sha256"]) != {
+            "new_grid_19", "new_grid_25", "new_grid_37", "old_unsat_guard"}):
+        raise AssertionError("R2 R1 EVIDENCE NOT THE REGISTERED TRAINING SET")
     p = json.loads(raw)
     if (p.get("schema") != "JANUS-E12C5-R2-FROZEN-SELECTOR-PROTOCOL-V1"
         or p["selector_frozen_before_tests"]["threshold_variables"] != THRESHOLD_N
