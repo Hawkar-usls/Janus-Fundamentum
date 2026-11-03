@@ -74,6 +74,64 @@ def trained_from_past(state):
         raise AssertionError("Training original SHA not independent")
     return base
 
+def calibration_lineage(state, fit, current_source_sha):
+    """Fail closed unless the fit contains EVERY successful prior original once.
+
+    An aborted cycle is preserved as evidence, but never becomes training.
+    The current candidate and frozen heldout cohort are excluded. The eight
+    exposed E12C3 originals form the immutable development baseline.
+    """
+    if fit.get("schema") != e.SCHEMA + "-DEV-FIT":
+        raise AssertionError("CALIBRATION_BAD_FIT_SCHEMA")
+    history = state.get("history", [])
+    all_history = [r["original_sha256"] for r in history]
+    prior = [r["original_sha256"] for r in history
+             if r.get("cycle_status") == "COMPLETE"]
+    if (len(set(all_history)) != len(all_history) or
+        len(set(prior)) != len(prior) or
+        current_source_sha in all_history):
+        raise AssertionError("CALIBRATION_DUPLICATE_OR_CURRENT_SOURCE")
+    profiles = fit.get("profiles", [])
+    training = [p["original_sha256"] for p in profiles]
+    if len(set(training)) != len(training) or current_source_sha in training:
+        raise AssertionError("CALIBRATION_SELF_TRAINING_OR_DUPLICATE")
+    prev = set(prior)
+    trained = set(training)
+    if not prev.issubset(trained):
+        raise AssertionError("CALIBRATION_DROPPED_VERIFIED_HISTORY")
+    if len(training) != len(prior) + 8:
+        raise AssertionError("CALIBRATION_UNEXPECTED_PROFILE_COUNT")
+    holdout = {e.generate(f, seed)["original_sha256"] for f, seed in e.HOLDOUT}
+    if trained & holdout:
+        raise AssertionError("CALIBRATION_HELDOUT_LEAK")
+    past_profiles = {p["original_sha256"]: p for p in profiles
+                     if p["original_sha256"] in prev}
+    for r in history:
+        if r.get("cycle_status") == "COMPLETE":
+            p = past_profiles[r["original_sha256"]]
+            if p["features"] != r["features"]:
+                raise AssertionError("CALIBRATION_PROFILE_FEATURE_DRIFT")
+            censored = any(z["raw_status"] != "VERIFIED" or
+                           z["xor_status"] != "VERIFIED"
+                           for z in r["paired_full_cold"])
+            if p["censored"] != censored:
+                raise AssertionError("CALIBRATION_CENSOR_DRIFT")
+        elif r["original_sha256"] in trained:
+            raise AssertionError("CALIBRATION_TRAINED_ON_FAILED_CYCLE")
+    return {
+        "prior_complete_original_count": len(prior),
+        "prior_complete_sha256": sha(encoded(sorted(prior))),
+        "baseline_original_count": len(training) - len(prior),
+        "total_profile_count": len(training),
+        "trained_originals_sha256": sha(encoded(sorted(training))),
+        "excluded_failed_history_count": len(history) - len(prior),
+        "prior_censored_count": sum(p["censored"] for p in past_profiles.values()),
+        "current_original_excluded": True,
+        "heldout_excluded": True,
+        "training_past_only": True,
+    }
+
+
 def verified_cryptominisat_model(assignment, n, original_rows):
     """Extend a 1-based, potentially sparse CryptoMiniSat SAT assignment.
 
@@ -228,6 +286,8 @@ def loop(args):
         if src["original_sha256"] in holdout_shas:
             raise AssertionError("Frozen held-out original SHA must not be benchmarked")
         model = trained_from_past(state)
+        stamp["calibration"] = calibration_lineage(
+            state, model, src["original_sha256"])
         model_file = out / "FIT.json"
         model_file.write_bytes(encoded(model))
         fit_sha = sha(model_file.read_bytes())
