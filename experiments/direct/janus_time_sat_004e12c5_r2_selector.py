@@ -44,7 +44,7 @@ UNSAT = "UNSAT_SAME_ADMIN_GF2_REPLAY_ONLY"
 
 def protocol():
     raw = PREREG.read_bytes()
-    git_blob = sha1(b"blob " + str(len(raw)).encode() + b"\\0" + raw).hexdigest()
+    git_blob = sha1(b"blob " + str(len(raw)).encode() + bytes([0]) + raw).hexdigest()
     if git_blob != FROZEN_PROTOCOL_BLOB_SHA1:
         raise AssertionError("R2 FROZEN PREREG BLOB CHANGED")
     p = json.loads(raw)
