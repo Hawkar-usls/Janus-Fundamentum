@@ -57,7 +57,7 @@ class E12C4AutopilotTests(unittest.TestCase):
             model = {"schema": cycle.e.SCHEMA + "-DEV-FIT", "profiles": [],
                      "min_gain":1.5, "min_matching_originals":2}
             def fake_child(command, **kwargs):
-                args = dict(zip(command[2::2], command[3::2]))
+                args = dict(zip(command[3::2], command[4::2]))
                 return SimpleNamespace(returncode=0,
                     stdout=json.dumps({"arm": args["--arm"],
                         "variant":args["--variant"],
