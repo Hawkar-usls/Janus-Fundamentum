@@ -222,7 +222,7 @@ def benchmark(fitpath,out):
         }
     record={
         "schema":"JANUS-E12C5-R6-RAW-WORKER-V1",
-        "pre_registered_protocol_git_blob_sha1":m.FROZEN_BLOB,
+        "pre_registered_protocol_git_blob_sha1":m.PROTOCOL_BLOB_SHA,
         "prereg_sha256":proto_sha,
         "fitted_from_prior_sha256":model_sha,
         "fit_prior_original_source_sha256":fit["training_original_SHA256"],
