@@ -1,0 +1,69 @@
+name: JANUS E12C4 epoch2 worker 500-source read-only rehearsal
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c4-epoch2-worker-20261104
+    paths:
+      - .github/workflows/time-sat-004e12c4-epoch2-preflight.yml
+      - experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
+      - tests/test_time_sat_004e12c4_epoch2.py
+permissions:
+  contents: read
+jobs:
+  rehearsal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 768c5ec181541405ba12a39be01481405dea9f26
+          path: legacy
+          persist-credentials: false
+      - name: Verify old exact 500-history boundary
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          d=json.loads(pathlib.Path('legacy/data/time_sat_004e12c4_loop/STATE.json').read_text())
+          assert d['next_cycle']==500 and len(d['history'])==500 and len(d['completed_run_ids'])==500
+          assert len([x for x in d['history'] if x['cycle_status']=='COMPLETE'])==499
+          print('EPOCH2_PRIOR_HISTORY_500_PRESERVED')
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pre-existing pinned SAT solvers
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Run old proof tests and new epoch bound tests
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4*.py' -v
+      - name: Exactly one cold cycle500; read-only no historical write
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
+          --state legacy/data/time_sat_004e12c4_loop/STATE.json
+          --out output
+      - name: Validate 500 worker decision and total prior-only history coverage
+        run: |
+          python - <<'PY'
+          import pathlib,json
+          a=json.loads(pathlib.Path('output/REPORT.json').read_text())
+          assert a['cycle_index']==500 and a['cycle_status']=='COMPLETE'
+          assert a['promotion']=='PROHIBITED' and a['heldout_sources_timed']==0
+          assert a['calibration']['prior_complete_original_count']==499
+          assert a['calibration']['total_profile_count']==507
+          assert a['calibration']['excluded_failed_history_count']==1
+          assert a['calibration']['training_past_only']
+          assert len(a['records'])==12
+          print('EPOCH2_FIRST_CYCLE500_REHEARSAL_PASS',a['run_id'],a['original_sha256'])
+          PY
+      - name: Archive proof but do not mutate state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epoch2-rehearsal-500-${{ github.run_id }}
+          path: output/
+          if-no-files-found: warn
+          retention-days: 14
