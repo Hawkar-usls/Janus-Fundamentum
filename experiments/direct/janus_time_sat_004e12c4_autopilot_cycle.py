@@ -22,7 +22,7 @@ from time import perf_counter, process_time
 import janus_time_sat_004e12c4_profit_aware_dev as e
 
 ARMS = ("raw_cms", "certified_native", "selected_dev", "cadical195")
-MAX_CYCLES = 500
+MAX_CYCLES = 525  # EPOCH2 bounded indices 500-524; 500 legacy records remain immutable
 CPU_LIMIT = 12
 WALL_LIMIT = 18
 MEM_LIMIT = 2147483648
