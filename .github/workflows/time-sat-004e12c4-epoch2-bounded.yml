@@ -1,0 +1,317 @@
+# E12C4 epoch2 reuses exactly 500 immutable legacy records.
+# Exclusive finite new development cycle indices 500..524, hourly maximum one.
+# Source code / state are isolated. No chain dispatch or C023 modification.
+name: JANUS E12C4 epoch2 bounded history-aware science
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      expected_cycle:
+        description: 'Optional exact cycle lock; blank for hourly recovery'
+        required: false
+        type: string
+      expected_state_sha256:
+        description: 'Optional exact state SHA256 matching expected cycle'
+        required: false
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/time-sat-004e12c4-epoch2-bounded.yml
+
+permissions: {}
+concurrency:
+  group: janus-e12c4-global-autonomous-research-loop-single-writer
+  cancel-in-progress: false
+
+jobs:
+  next-development-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    outputs:
+      should_run: ${{ steps.state_gate.outputs.should_run }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout isolated research candidate (no write token)
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-epoch2-worker-20261104
+          path: src
+          persist-credentials: false
+      - name: Checkout append-only state (no write token)
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-epoch2-state-20261104
+          path: state
+          persist-credentials: false
+      - name: Checkout exact frozen legacy 500-cycle state for prefix verification
+        uses: actions/checkout@v4
+        with:
+          ref: 768c5ec181541405ba12a39be01481405dea9f26
+          path: legacy
+          persist-credentials: false
+      - name: Reject stale queued dispatch, duplicate work, and paused state
+        id: state_gate
+        env:
+          EXPECTED_CYCLE: ${{ inputs.expected_cycle || '' }}
+          EXPECTED_STATE_SHA256: ${{ inputs.expected_state_sha256 || '' }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          b = pathlib.Path('state/data/time_sat_004e12c4_loop/STATE.json').read_bytes()
+          s = json.loads(b)
+          legacy = json.loads(pathlib.Path('legacy/data/time_sat_004e12c4_loop/STATE.json').read_bytes())
+          policy = json.loads(pathlib.Path('state/data/time_sat_004e12c4_loop/EPOCH2_POLICY.json').read_bytes())
+          if (policy.get('schema') != 'JANUS-E12C4-EPOCH2-POLICY-V1'
+              or policy['legacy_history']['legacy_immutable_state_commit'] != '768c5ec181541405ba12a39be01481405dea9f26'
+              or len(legacy['history']) != 500
+              or len(legacy['completed_run_ids']) != 500
+              or s.get('history', [])[:500] != legacy['history']
+              or s.get('completed_run_ids', [])[:500] != legacy['completed_run_ids']
+              or len(s.get('history', [])) != s.get('next_cycle')
+              or len(s.get('completed_run_ids', [])) != len(s.get('history', []))):
+              raise SystemExit('FAIL_CLOSED_EPOCH2_LEGACY_PREFIX_OR_BOUNDARY_DRIFT')
+          if s.get('schema') != 'JANUS-E12C4-AUTOPILOT-STATE-V1':
+              raise SystemExit('FAIL_CLOSED_BAD_STATE_SCHEMA')
+          ecycle = os.environ.get('EXPECTED_CYCLE', '')
+          ehash = os.environ.get('EXPECTED_STATE_SHA256', '')
+          if bool(ecycle) != bool(ehash):
+              raise SystemExit('FAIL_CLOSED_PARTIAL_NEXT_CYCLE_LOCK')
+          active = s.get('mode') == 'DEVELOPMENT_ONLY'
+          active = active and type(s.get('next_cycle')) is int and 500 <= s['next_cycle'] < 525
+          if ecycle:
+              active = active and ecycle == str(s['next_cycle']) and ehash == hashlib.sha256(b).hexdigest()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('should_run=' + ('true' if active else 'false') + '\n')
+          print('JANUS_E12C4_DISPATCH_GATE', 'RUN' if active else 'SKIP',
+                'cycle', s.get('next_cycle'), 'sha', hashlib.sha256(b).hexdigest())
+          PY
+      - uses: actions/setup-python@v5
+        if: steps.state_gate.outputs.should_run == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install pre-used pinned open-source solvers
+        if: steps.state_gate.outputs.should_run == 'true'
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Record exact research SHA
+        if: steps.state_gate.outputs.should_run == 'true'
+        run: echo "E12C4_RESEARCH_SHA=$(git -C src rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Always recheck proof and state-machine invariants
+        if: steps.state_gate.outputs.should_run == 'true'
+        working-directory: src
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c4*.py' -v
+      - name: Execute exactly the next bounded DEV cycle, never E12C4 holdout
+        if: steps.state_gate.outputs.should_run == 'true'
+        working-directory: src
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c4_autopilot_cycle.py
+          --state "$GITHUB_WORKSPACE/state/data/time_sat_004e12c4_loop/STATE.json"
+          --out "$GITHUB_WORKSPACE/output"
+      - name: Keep all reports, including negative outcomes, separate from production
+        if: ${{ always() && steps.state_gate.outputs.should_run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c4-autonomous-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: warn
+
+  persist-audited-state:
+    needs: next-development-cycle
+    if: ${{ needs['next-development-cycle'].result == 'success' && needs['next-development-cycle'].outputs.should_run == 'true' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Checkout exact frozen legacy 500-cycle state for prefix verification
+        uses: actions/checkout@v4
+        with:
+          ref: 768c5ec181541405ba12a39be01481405dea9f26
+          path: legacy
+          persist-credentials: false
+      - name: Checkout only state for write - NO experimental source code executed
+        uses: actions/checkout@v4
+        with:
+          ref: research/time-sat-004e12c4-epoch2-state-20261104
+          path: state
+          persist-credentials: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: e12c4-autonomous-dev-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output
+      - name: Verify exact untrusted receipt schema, limits, duplicate IDs and CAS then append
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, shutil
+          root = pathlib.Path("state/data/time_sat_004e12c4_loop")
+          state_path = root / "STATE.json"
+          old = state_path.read_bytes()
+          state = json.loads(old)
+          legacy = json.loads(pathlib.Path("legacy/data/time_sat_004e12c4_loop/STATE.json").read_bytes())
+          policy = json.loads(pathlib.Path("state/data/time_sat_004e12c4_loop/EPOCH2_POLICY.json").read_bytes())
+          if (policy.get("schema") != "JANUS-E12C4-EPOCH2-POLICY-V1"
+              or policy["legacy_history"]["legacy_immutable_state_commit"] != "768c5ec181541405ba12a39be01481405dea9f26"
+              or len(legacy.get("history", [])) != 500
+              or len(legacy.get("completed_run_ids", [])) != 500
+              or state.get("history", [])[:500] != legacy["history"]
+              or state.get("completed_run_ids", [])[:500] != legacy["completed_run_ids"]
+              or len(state.get("history", [])) != state.get("next_cycle")
+              or len(state.get("completed_run_ids", [])) != len(state.get("history", []))
+              or not 500 <= state["next_cycle"] < 525):
+              raise SystemExit("FAIL_CLOSED_EPOCH2_IMMUTABLE_LEGACY_OR_CAP")
+          report_path = pathlib.Path("output/REPORT.json")
+          report_bytes = report_path.read_bytes()
+          report = json.loads(report_bytes)
+          hexsha = lambda x: hashlib.sha256(x).hexdigest()
+          if state.get("schema") != "JANUS-E12C4-AUTOPILOT-STATE-V1":
+              raise SystemExit("FAIL_CLOSED: state schema mismatch")
+          if report.get("schema") != "JANUS-E12C4-AUTOPILOT-CYCLE-V1":
+              raise SystemExit("FAIL_CLOSED: report schema mismatch")
+          if report.get("run_id") != os.environ["GITHUB_RUN_ID"]:
+              raise SystemExit("FAIL_CLOSED: wrong GitHub run ID")
+          if report.get("previous_state_sha256") != hexsha(old):
+              raise SystemExit("FAIL_CLOSED: state CAS mismatch")
+          if report.get("cycle_index") != state.get("next_cycle") or not 500 <= report["cycle_index"] < 525:
+              raise SystemExit("FAIL_CLOSED: epoch2 index / cycle replay / out of order")
+          if report.get("heldout_sources_timed") != 0 or report.get("promotion") != "PROHIBITED":
+              raise SystemExit("FAIL_CLOSED: promotion or frozen holdout attempted")
+          if report.get("main_C023") != "UNCHANGED" or report.get("worker") != "GITHUB_HOSTED_PUBLIC_ONLY":
+              raise SystemExit("FAIL_CLOSED: unauthorized execution target")
+          if (report.get("cpu_child_limit_s"), report.get("wall_child_limit_s"),
+              report.get("address_space_bytes")) != (12, 18, 2147483648):
+              raise SystemExit("FAIL_CLOSED: compute budget drift")
+          status = report.get("cycle_status")
+          if status in ("SKIPPED_PAUSED", "SKIPPED_DUPLICATE_RUN"):
+              print("NOOP", status)
+              raise SystemExit(0)
+          if status not in ("COMPLETE", "PAUSED_SAFETY_FAILURE", "PAUSED_BUDGET_LIMIT"):
+              raise SystemExit("FAIL_CLOSED: unexpected scientific outcome")
+          if report["run_id"] in state.get("completed_run_ids", []):
+              print("ALREADY_COMMITTED", report["run_id"])
+              raise SystemExit(0)
+          if status in ("COMPLETE", "PAUSED_SAFETY_FAILURE"):
+              if state["mode"] != "DEVELOPMENT_ONLY":
+                  raise SystemExit("FAIL_CLOSED: active write while paused")
+              records = report.get("records", [])
+              if len(records) != 12:
+                  raise SystemExit("FAIL_CLOSED: expected exact 3 variants x 4 methods")
+              keys = {(r["variant"], r["arm"]) for r in records}
+              if keys != {(v, a) for v in
+                      ("as_emitted", "global_shuffle", "renamed_polarity") for a in
+                      ("raw_cms", "certified_native", "selected_dev", "cadical195")}:
+                  raise SystemExit("FAIL_CLOSED: cold matrix missing/duplicated")
+              if report.get("original_sha256") in {z["original_sha256"] for z in state["history"]}:
+                  raise SystemExit("FAIL_CLOSED: original source SHA reused")
+              if len(report.get("original_sha256", "")) != 64 or len(report.get("fit_sha256", "")) != 64:
+                  raise SystemExit("FAIL_CLOSED: missing source / fit SHA")
+              if hexsha(pathlib.Path("output/FIT.json").read_bytes()) != report["fit_sha256"]:
+                  raise SystemExit("FAIL_CLOSED: model SHA mismatch")
+              # This writer rechecks the READ-ONLY worker's learning lineage.
+              # It must contain EVERY earlier COMPLETE SHA once, NO failed,
+              # current or hidden source, plus exactly eight exposed C3 samples.
+              fit = json.loads(pathlib.Path("output/FIT.json").read_bytes())
+              profiles = fit.get("profiles", [])
+              trained = [p["original_sha256"] for p in profiles]
+              previous = [h for h in state["history"]
+                          if h["cycle_status"] == "COMPLETE"]
+              prior_shas = [h["original_sha256"] for h in previous]
+              rejected_shas = {h["original_sha256"] for h in state["history"]
+                               if h["cycle_status"] != "COMPLETE"}
+              c = report.get("calibration")
+              if not isinstance(c, dict):
+                  raise SystemExit("FAIL_CLOSED: missing per-cycle calibration attestation")
+              calc_sha = lambda keys: hexsha((json.dumps(
+                  sorted(keys), sort_keys=True, separators=(",", ":")) + chr(10)).encode())
+              if (len(set(trained)) != len(trained) or len(set(prior_shas)) != len(prior_shas)
+                  or len(profiles) != len(previous) + 8
+                  or not set(prior_shas).issubset(set(trained))
+                  or report["original_sha256"] in set(trained)
+                  or set(trained) & rejected_shas):
+                  raise SystemExit("FAIL_CLOSED: prior sources missing, duplicate or leaked")
+              checks = {
+                  "prior_complete_original_count": len(previous),
+                  "prior_complete_sha256": calc_sha(prior_shas),
+                  "baseline_original_count": 8,
+                  "total_profile_count": len(profiles),
+                  "trained_originals_sha256": calc_sha(trained),
+                  "excluded_failed_history_count": len(state["history"]) - len(previous),
+                  "prior_censored_count": sum(p["censored"] for p in profiles
+                    if p["original_sha256"] in set(prior_shas)),
+                  "current_original_excluded": True,
+                  "heldout_excluded": True,
+                  "training_past_only": True,
+              }
+              if any(c.get(k) != v for k, v in checks.items()):
+                  raise SystemExit("FAIL_CLOSED: model lineage evidence != previous state")
+              profile_by_sha = {p["original_sha256"]: p for p in profiles}
+              for h in previous:
+                  p = profile_by_sha[h["original_sha256"]]
+                  expected_censored = any(z["raw_status"] != "VERIFIED" or
+                     z["xor_status"] != "VERIFIED" for z in h["paired_full_cold"])
+                  if p["features"] != h["features"] or p["censored"] != expected_censored:
+                      raise SystemExit("FAIL_CLOSED: historical feature or censor drift")
+              print("E12C4_CALIBRATION_VERIFIED", len(previous),
+                    "prior confirmed originals; baseline 8; failed excluded",
+                    len(rejected_shas))
+              if status == "COMPLETE":
+                  if len(report.get("paired_full_cold", [])) != 3:
+                      raise SystemExit("FAIL_CLOSED: missing RAW/native matched comparisons")
+                  if any(r["outcome"]["status"] not in
+                         ("SAT_VERIFIED", "UNSAT_INTERNAL_EXHAUSTIVE_ONLY", "UNKNOWN_CPU_LIMIT",
+                          "UNKNOWN_WALL_LIMIT", "UNKNOWN_NO_ANSWER") for r in records):
+                      raise SystemExit("FAIL_CLOSED: hidden invalid child result")
+              short = {"cycle_index": report["cycle_index"],
+                       "cycle_status": status, "run_id": report["run_id"],
+                       "original_sha256": report["original_sha256"],
+                       "source_code_sha": report.get("source_code_sha"),
+                       "family": report["family"], "seed": report["seed"],
+                       "features": report["features"],
+                       "fit_sha256": report["fit_sha256"],
+                       "paired_full_cold": report.get("paired_full_cold", []),
+                       "calibration": report["calibration"],
+                       "full_receipt_sha256": hexsha(report_bytes)}
+              if not 500 <= report["cycle_index"] < 525:
+                  raise SystemExit("FAIL_CLOSED_EPOCH2_CYCLE_OUT_OF_ALLOWED_RANGE")
+              state["history"].append(short)
+              if status == "COMPLETE":
+                  state["next_cycle"] += 1
+              else:
+                  state["mode"] = status
+          elif status == "PAUSED_BUDGET_LIMIT":
+              state["mode"] = status
+          state["completed_run_ids"].append(report["run_id"])
+          state["last_report_sha256"] = hexsha(report_bytes)
+          filename = ("%06d" % report["cycle_index"]) + "__" + report["run_id"] + ".json"
+          dest = root / "cycles" / filename
+          dest.parent.mkdir(parents=True, exist_ok=True)
+          if dest.exists():
+              raise SystemExit("FAIL_CLOSED: existing immutable report")
+          dest.write_bytes(report_bytes)
+          root.mkdir(parents=True, exist_ok=True)
+          state_path.write_text(json.dumps(state, sort_keys=True, indent=2) + "\n")
+          print("JANUS_E12C4_SCIENCE_HISTORY_PERSISTED", status, filename, hexsha(report_bytes))
+          
+          PY
+      - name: Append-only push to research state branch - NEVER main or C023
+        id: persisted
+        working-directory: state
+        run: |
+          git config user.name 'JANUS E12C4 GitHub Actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/time_sat_004e12c4_loop
+          if git diff --cached --quiet; then
+            echo 'No new state: paused or duplicate run'
+            echo 'appended=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "e12c4(auto-dev): append source SHA, censored receipts, safe-next-cycle state [skip ci]"
+          git push origin HEAD:research/time-sat-004e12c4-epoch2-state-20261104
+          echo 'appended=true' >> "$GITHUB_OUTPUT"
+      # Intentionally NO chained dispatch. Hourly schedule is the sole recurring
+      # trigger. At most 25 new cycles, 300 cold children, then hard STOP.
