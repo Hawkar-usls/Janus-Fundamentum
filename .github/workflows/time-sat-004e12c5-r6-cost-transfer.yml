@@ -1,0 +1,99 @@
+name: JANUS E12C5 R6 frozen mixed-CNF/width3 cost selector
+on:
+  push:
+    branches:
+      - research/time-sat-004e12c5-r6-cost-transfer-20261104
+    paths:
+      - .github/workflows/time-sat-004e12c5-r6-cost-transfer.yml
+      - experiments/direct/janus_time_sat_004e12c5_r6_model.py
+      - experiments/direct/janus_time_sat_004e12c5_r6_benchmark.py
+      - experiments/direct/janus_time_sat_004e12c5_r6_audit.py
+      - experiments/time_sat_004_external/E12C5_R6_PREREG.json
+      - tests/test_time_sat_004e12c5_r6_transfer.py
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-e12c5-r6-frozen-first-unseen-mixed-cnf-transfer
+  cancel-in-progress: false
+jobs:
+  new-source-full-cold:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        host: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze original R5 proof history and the untouched R6 contract
+        run: |
+          echo "R6_CODE_COMMIT=${{ github.sha }}"
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R6_PREREG.json)" = '150fc8b9d27a37485f46e0a2bd5aaf6ab6a3450f'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R6_PRIOR_R5_TIMINGS.json)" = 'ffbf8f231b473f985f1baf3a4c1afa8f3abf6fec'
+          test "$(git hash-object experiments/time_sat_004_external/E12C5_R5_POSTRUN_REPORT.json)" = '9ceb03f8738b4ed2d45159695ff354051da5799b'
+          sha256sum experiments/time_sat_004_external/E12C5_R6_PREREG.json
+      - name: Install previously approved free hosted open-source SAT controls
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all:
+          'pycryptosat==5.15.0' 'python-sat==1.9.dev17'
+      - name: Fit independently solely from R5 old 12 originals
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r6_model.py
+          --fit-output evidence/FIT_R6.json
+      - name: Lock the first R6 model and prove pre-solve decisions without timing
+        run: python -m unittest discover -s tests -p 'test_time_sat_004e12c5_r6_transfer.py' -v
+      - name: Regenerate and attest all 12 NEW source SHAs, exclude R5 originals
+        run: python experiments/direct/janus_time_sat_004e12c5_r6_model.py --preflight
+      - name: Benchmark 12 unmeasured SAT CNFs x five arms x three cold repeats
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r6_benchmark.py
+          --fit evidence/FIT_R6.json
+          --out evidence/r6/${{ matrix.host }}
+      - name: Preserve negative results, censored arms and fit SHA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r6-${{ matrix.host }}-${{ github.run_id }}
+          path: |
+            evidence/FIT_R6.json
+            evidence/r6/${{ matrix.host }}/RESULT.json
+            experiments/time_sat_004_external/E12C5_R6_PREREG.json
+          retention-days: 90
+          if-no-files-found: warn
+  freeze-protected-external-baseline-audit:
+    needs: new-source-full-cold
+    if: ${{ needs['new-source-full-cold'].result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e12c5-r6-*
+          path: evidence/r6-both-hosts
+          merge-multiple: false
+      - name: Independently rebuild R5-only fit and replay all 360 new cold receipts
+        run: >-
+          python experiments/direct/janus_time_sat_004e12c5_r6_audit.py
+          --reports evidence/r6-both-hosts
+          --out evidence/r6-scientific-audit
+      - name: Preserve exact frozen positive or negative verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e12c5-r6-audit-${{ github.run_id }}
+          path: evidence/r6-scientific-audit/AUDIT.json
+          retention-days: 90
+          if-no-files-found: warn
