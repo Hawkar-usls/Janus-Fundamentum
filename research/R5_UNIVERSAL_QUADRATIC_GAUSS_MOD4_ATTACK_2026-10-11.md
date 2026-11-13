@@ -1,0 +1,390 @@
+# Universal Solver Research: Exact Polynomial Quadratic Gauss / MOD4 Kernel Filter
+
+Date: 2026-10-11
+PR: https://github.com/Hawkar-usls/Janus-Fundamentum/pull/515
+
+Status: SOUND ALL-INPUT POLYNOMIAL MOD4 OBSTRUCTION,
+NOT COMPLETE UNIVERSAL SOLVER; P_VS_NP=OPEN.
+
+## 1. Mathematical theorem for EVERY square+cubic incidence matrix
+
+Let A be n x n over {0,1}, each row and column with exactly
+three ones. Let K=ker_F2(A), dim K=d; assume 3|n and m=n/3.
+Every k in K has even Hamming weight:
+
+    3|k| = 2 t,  0<=t<=n,
+
+because each selected row has count 0 or 2 over the integers.
+Thus |k| is even, |k|<=2n/3=2m, and
+
+    A SAT iff exists k in K with |k|=2m  (E56/E65).
+
+Consider the well-defined binary function
+
+    q(k) = (|k|/2) mod 2.
+
+For k,h in K, elementary Hamming arithmetic yields
+
+    q(k+h) = q(k)+q(h)+(k dot h) (mod 2).
+
+Thus q is a quadratic form on the F2-linear space K, and its
+polar bilinear form is the standard F2 dot product restricted to K.
+
+Given a basis b_1,...,b_d of K and k=sum t_i b_i,
+
+    q(t) = sum_i (|b_i|/2 mod 2) t_i
+           + sum_{i<j} ((b_i dot b_j) mod 2) t_i t_j.
+
+The complete signed sum
+
+    G(K)=sum_{t in F2^d} (-1)^q(t)
+
+can be computed exactly in deterministic POLYNOMIAL time
+without enumerating the 2^d vectors.
+
+### Constructive quadratic Gauss elimination
+
+Write a quadratic Boolean polynomial as
+
+    q(u,v,r) = u*v + a(r)*u + b(r)*v + c(r),
+
+where a,b are affine-linear Boolean polynomials in remaining
+coordinates r, and c has degree<=2. Then
+
+    sum_{u,v in F2} (-1)^q = 2*(-1)^[c(r)+a(r)b(r)].
+
+Eliminate any quadratic edge uv, multiply scalar factor by 2,
+and replace q with c+ab, still a quadratic Boolean polynomial.
+If no quadratic edge remains, q is affine; its signed sum is 0
+if a linear term is present and +/-2^(#remaining variables)
+otherwise.
+
+After at most floor(d/2) such pair eliminations the result
+is exact. Dense Boolean polynomial updates touch O(d^2)
+terms per elimination, giving a conservative O(d^3) GF2
+arithmetic bound with polynomial bit operations. The Gaussian
+result is an integer of magnitude at most 2^d and therefore
+has O(d) bits.
+
+No assumptions on girth, connectivity, nullity size or bounded
+treewidth are used.
+
+### Pinned/affine extension is also exact and polynomial
+
+Partial assignments on Boolean x correspond to affine constraints
+k_j=1-x_j within K. Gaussian elimination of the constraints
+over F2 produces either no feasible affine word, or
+
+    k=k0+sum_{i=1}^{d'} t_i c_i,
+
+for independent even-weight codewords c_i in K.
+
+Now
+
+    q(k) = q(k0)
+           +sum_i (q(c_i)+k0 dot c_i) t_i
+           +sum_{i<j} (c_i dot c_j)t_i*t_j,
+
+so the same polynomial Gauss algorithm returns
+
+    G(pi)=sum_{k in K meeting pi} (-1)^q(k).
+
+Let N=2^d' be the number of affine words. Counts in the two
+possible Hamming residue classes are then EXACTLY
+
+    #(|k|=0 mod 4) = (N+G(pi))/2,
+    #(|k|=2 mod 4) = (N-G(pi))/2.
+
+This gives a global POLYNOMIAL necessary decision for any pin:
+
+    if (N+(-1)^m*G(pi))/2 == 0, then there is no
+    Exact-One extension satisfying pi.
+
+The implication is sound for EVERY square-cubic-linear input
+(and square cubic inputs without linearity). If the count is
+positive it does NOT imply any weight-2m vector exists;
+therefore it is NOT a complete universal solver.
+
+**Sharp all-input ceiling for the UNPINNED filter:**
+
+- If m is EVEN, desired |k|=2m is a 0-mod4 weight. The zero
+  kernel word always belongs to that residue, so N0>=1.
+  Consequently the unpinned MOD4 test can NEVER conclude UNSAT
+  for any such A. It may still prune *pinned* affine slices.
+- If m is ODD, the desired weight has residue 2 mod4. The
+  unpinned MOD4 test can prove UNSAT exactly when N2=0,
+  i.e. when the entire K is DOUBLY EVEN.
+- The all-input doubly-even condition has a particularly simple
+  exact polynomial check on ANY binary basis b_i:
+
+      |b_i| == 0 (mod4)  for all i, AND
+      |b_i intersect b_j| == 0 (mod2) for all i<j.
+
+  Proof: |u+v|=|u|+|v|-2|u intersect v|. Sufficiency
+  follows by induction over the span; necessity from each
+  basis vector and each pair. Complexity O(n*d^2) bit work.
+  The checker verifies this independently of the Gauss sum.
+
+These bounds are not performance heuristics. They formally show
+which input families the basic unpinned MOD4 certificate can
+and cannot decide.
+
+## 2. E123 UNSAT vs transpose SAT: a strong exact result
+
+For the E64/E123 Tutte-12 incidence carrier R, n=63,m=21,d=14.
+The independent integer/GF2 algorithm obtains
+
+    R   : N0=16,384, N2=0,    G=16,384;
+    R^T : N0=8,192, N2=8,192, G=0.
+
+The source R's kernel is a doubly-even binary code, so all
+kernel word weights are 0 mod 4. But Exact-One requires
+weight 2m=42 = 2 mod 4, proving R UNSAT solely from a
+POLYNOMIAL certificate, with NO enumeration of 2^14 vectors.
+
+For **all 189 one-check pin choices**, the affine polynomial
+Gauss algorithm returns N2=0 on R. The SAT transpose R^T
+has strictly positive N2 for all 189 choices.
+
+Thus this global orientation-sensitive quadratic invariant
+separates the previously hard 189/189 LP-feasible pins and
+the exact degree-2 SDP pseudo-moments. A second-moment SDP
+over real-valued pseudo-variables does not automatically encode
+the parity-weight quadratic invariant over the GF2 kernel.
+
+This is a stronger algorithmic certificate for **E123** than
+the prior finite kernel enumeration, not an all-input solution.
+The known E67/E68 moment calculations and E65 frozen weight
+enumerators already implied the R-side residue pattern;
+the innovation in this checkpoint is an all-input constructive
+polynomial computation of these residue counts including
+arbitrary affine pins. Mathematical quadratic Gauss
+elimination itself is classical; do NOT claim its discovery.
+
+## 3. E118 hard reduction is mandatory anti-overclaim control
+
+Run the same exact polynomial oracle on E118's 90-variable
+connected square/cubic/linear target compiled from two q9
+cubic sources (cyclic offsets (1,6) UNSAT and (1,2) SAT).
+
+The resulting n=90 target weight is 2m=60, a 0-mod4 class.
+Independent exact computation on both connected n=90 targets gives:
+
+    q9(1,6) source UNSAT -> q90 target UNSAT:
+        d=18, N0=131,072, N2=131,072.
+    q9(1,2) source SAT -> q90 target SAT:
+        d=18, N0=131,072, N2=131,072.
+
+The *correct* residue for weight 60 is N0, which is positive on
+both! This explicitly REFUTES the extension of the E123 MOD4 success
+to a universal SAT decision rule, while keeping the sound exclusion
+direction intact. Both source statuses are determined independently
+by their nine-variable brute-force truth tables plus the generic
+E118 SAT-preserving construction, not inferred from the Gauss test.
+
+Even imposing any of the 3 pinned Exact-One states in each of the
+90 source rows does NOT repair the method. All 90*3=270 one-check
+pins have strictly positive 0-mod4 solution counts for BOTH
+orientations of the E118 positive/negative control, despite the
+negative target being Boolean UNSAT. Exact profiles:
+
+    UNSAT90:
+      (N0,N2)=(32768,32768): 235 pins;
+               (33024,32512): 16 pins;
+               (33280,32256): 11 pins;
+               (32512,33024):  8 pins.
+
+    SAT90:
+      (N0,N2)=(32768,32768): 231 pins;
+               (33024,32512): 24 pins;
+               (32512,33024): 12 pins;
+               (33280,32256):  3 pins.
+
+The count of *surviving* check choices is 270/270 on BOTH,
+so the polynomial MOD4 oracle does not give even a single
+first-level prune on the UNSAT90 target. The distributions
+of residue counts differ; no equality of ALL possible
+quadratic invariants is claimed.
+
+Even without such a finite example, NP-completeness of the
+E118 full target class means no general completeness may be
+assumed without proving a new theorem.
+
+## 3A. Why the next root-of-unity / MOD8 extension becomes cubic
+
+For even-weight codewords b_i, the exact binary XOR identity
+gives, for t_i in {0,1},
+
+    |XOR_i t_i b_i|/2  =
+      sum_i (|b_i|/2) t_i
+      - sum_{i<j} |b_i intersect b_j| t_i t_j
+      + 2 sum_{i<j<k} |b_i intersect b_j intersect b_k|
+          t_i t_j t_k                       (mod 4).
+
+All terms of degree >=4 are multiples of 4 after division by 2.
+This is an exact integer identity modulo 4, not an approximate
+statistical statement.
+
+The next half-weight root-of-unity evaluation
+
+    H(i)=sum_{k in K} i^(|k|/2)
+
+therefore has a **cubic** phase modulo4, rather than the
+quadratic F2 phase used by H(-1). The 2-mod4 cubic coefficients
+are nonzero precisely where the triple coordinate intersection
+has odd parity.
+
+For the canonical RREF bases in the frozen checker, exact counts
+of nonzero cubic coefficients are:
+
+    E123 UNSAT R (d=14): 152 of binom(14,3)=364;
+    E123 SAT  R^T(d=14): 163 of binom(14,3)=364;
+    E118 UNSAT90(d=18):   14 of binom(18,3)=816;
+    E118 SAT90  (d=18):    9 of binom(18,3)=816.
+
+These counts depend on the chosen basis (the existence of nonzero
+third-order finite differences, however, is intrinsic). They
+demonstrate why directly reusing pairwise quadratic-Gauss
+elimination for H(i) is *not justified*: eliminating a pair from
+a general cubic phase does not preserve bounded-degree quadratic
+structure. It does **not** rule out some other globally compressed
+polynomial algorithm for the cubic phase or for the original SAT.
+
+This makes the next mathematical obligation precise: supply a
+uniform polynomial exact evaluator for enough higher-order
+half-weight phases/coefficient information, or bypass this
+interpolation family altogether. A new named phase or extra
+symmetric moment by itself is not a universal algorithm.
+
+## 4. Relation to the rank-aggregation route
+
+Earlier PR #515 notes show
+
+    Z(A,pi) =
+      sum_{k in K meeting pi} binom(|k|/2,m),
+
+with the missing universal polynomial step being exact
+high-degree rank moment aggregation.
+
+The present quadratic Gauss method computes one special
+weighted evaluation:
+
+    H_pi(-1)=sum_{k in K meeting pi} (-1)^(|k|/2)
+
+of the half-weight enumerator H_pi(z) =
+sum_k z^(|k|/2), in polynomial time.
+
+H_pi(1)=2^d' is also trivial. Computing H_pi(-1) at only these
+two roots yields the residue pair but does not uniquely
+determine its top coefficient [z^m]H_pi(z)=Z(A,pi).
+A universal interpolation would need sufficiently many
+independent evaluations or a proved special all-input
+closed form; nothing here supplies them.
+
+Special roots of unity can admit algebraic Gauss shortcuts,
+but a cheap *single* evaluation is not a uniform polynomial
+algorithm for an arbitrary coefficient. General weight
+enumerator/Tutte polynomial calculations face known hardness
+barriers; do NOT import hardness claims for an arbitrary
+restricted carrier without an explicit reduction.
+
+Related prior work: classical Arf invariants and GF2 quadratic
+Gauss sums; see Agarwal and Jindal, "Deterministic NC Quadratic
+Root Counting in Characteristic Two", arXiv:2609.12669 for
+recent independent context, not a priority or originality claim.
+
+## 4A. Exact all-input Fourier phase theorem required for UNIVERSAL recovery
+
+The MOD4 quadratic Gauss result is one efficiently computable Fourier
+sample, not the full weight enumerator. The exact minimum all-input
+information for this *specific Fourier route* is as follows.
+
+Let m=n/3 and Q=the smallest power of two STRICTLY GREATER than m.
+Because every kernel word weight is even and <=2m, the pinned
+half-weight enumerator
+
+    H_pi(z) = sum_{k in K meeting pi} z^(|k|/2)
+
+is an INTEGER polynomial of degree at most m, even after pins.
+Thus Q>m and Q<=2(m+1)=O(n).
+
+With omega a primitive Q-th root of unity, the exact
+root-of-unity filter gives
+
+    Z(A,pi) = [z^m]H_pi(z)
+            = (1/Q)sum_{j=0}^{Q-1}
+                    omega^(-jm) H_pi(omega^j).
+
+This identity is exact for EVERY input and EVERY pin. Unlike
+a single residue check, all Q=O(n) phases together separate
+the top weight from every lower even weight.
+
+Important bit-complexity point: Q=2^s, so the cyclotomic
+polynomial is Phi_Q(x)=x^(Q/2)+1 for Q>=2. Every phase value is
+an algebraic integer with at most Q/2=O(n) integral coordinates
+in the basis 1,omega,...,omega^(Q/2-1). Each coordinate is a
+signed sum of at most 2^d' individual terms, hence has <=d'+1
+plus sign bits, i.e. O(n) bits. Thus the ENTIRE output encoding
+for all Q values is polynomial, and exact cyclotomic additions,
+sign reductions and the final division by Q are polynomial.
+
+**The single UNPROVED algorithmic theorem for this route:**
+
+    UNIFORM_POLYNOMIAL_EXACT_CYCLOTOMIC_PHASE_EVALUATOR:
+    Given ANY square+cubic+linear A, any pins pi, and
+    j in [0,Q), compute H_pi(omega^j) exactly as Q/2
+    integer coefficients in deterministic poly(n) bit time.
+
+If proved, invoke it Q=O(n) times, apply exact Fourier inversion,
+and recover Z(A,pi). By successive pinned queries, obtain a
+universal sound/complete polynomial-time SAT+witness or UNSAT
+solver. This is a valid SUFFICIENT theorem; it is presently OPEN.
+The all-input E118 NP-completeness makes an all-Q solution a
+P=NP-scale breakthrough, not a consequence of a short formula.
+
+Our polynomial quadratic-Gauss oracle computes H_pi(omega^(Q/2))
+=H_pi(-1), plus H_pi(1) is immediate. The next genuinely new
+values for Q divisible by four include H_pi(i), whose phase
+already has the cubic terms exhibited in Section 3A.
+No polynomial algorithm for those general all-input evaluations
+has been proved here.
+
+This Fourier restatement does not reduce general complexity:
+it isolates the missing phase computation rather than hiding
+exponential work in a DFT, in complex precision, or in a
+postulated oracle. Do not count the identity as the global
+solver itself.
+
+## 5. Exact reproduction
+
+    python experiments/r5_universal_quadratic_gauss_mod4_attack.py
+
+The checker performs:
+- independent exhaustive vs polynomial affine Gauss comparisons
+  on five pin sets for E61 SAT12 and UNSAT12;
+- q63 R and R^T exact integer arithmetic and 189 pinned checks;
+- two E118 n=90 hard target comparisons (without enumerating
+  a potentially large kernel);
+- explicit all-input polynomial complexity boundary.
+
+No theorem beyond the stated GF2 quadratic properties is inferred
+from finite positive or negative controls.
+
+## Gate
+
+GAUSS_QUADRATIC_MOD4_ALL_INPUT_POLYNOMIAL = PROVED.
+AFFINE_PINNED_QUADRATIC_GAUSS_ALL_INPUT_POLYNOMIAL = PROVED.
+E123_SOURCE_Q63_MOD4_UNSAT = POLYNOMIAL_CERTIFICATE.
+E123_ALL_189_PIN_MOD4_EXCLUSION = EXACT_REPLAY.
+TRANSPOSE_R_T_SAT_SUPPORT_RETAINS_MOD4 = EXACT_REPLAY.
+MOD4_RESIDUE_POSITIVE_IMPLIES_EXACTONE_SAT = REFUTED_BY_E118_UNSAT90.
+E118_NEGATIVE_270_OF_270_PINNED_MOD4_SURVIVORS = EXACT_REPLAY.
+UNPINNED_MOD4_FOR_EVEN_M_CANNOT_CERTIFY_UNSAT = PROVED.
+UNPINNED_MOD4_FOR_ODD_M_EQUALS_DOUBLY_EVEN_TEST = PROVED.
+MOD8_HALF_WEIGHT_PHASE_HAS_CUBIC_INTERACTIONS = PROVED.
+GENERIC_QUADRATIC_GAUSS_EVALUATES_MOD8_PHASE = NOT_ESTABLISHED.
+RANK_AGGREGATION_FOR_TOP_COEFFICIENT = OPEN.
+UNIVERSAL_EXACT_CYCLOTOMIC_PHASE_EVALUATOR = OPEN.
+EXACT_FOURIER_RECOVERY_WITH_POLYNOMIAL_OUTPUT_BITS = PROVED_CONDITIONALLY_ON_PHASE_ORACLE.
+UNIVERSAL_POLYNOMIAL_EXACTONE_SOLVER = NOT_CONSTRUCTED.
+P_VS_NP = OPEN.
