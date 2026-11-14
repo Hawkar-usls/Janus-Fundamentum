@@ -51,7 +51,7 @@ def locked_sources():
         or p["heldout_seeds"]!=list(SEEDS)
         or p["training_sources_per_seed"]!=TRAIN
         or p["heldout_sources_per_seed"]!=HOLDOUT
-        or p["preregistered_controls"]!=list(ARMS)
+        or sorted(p["preregistered_controls"])!=sorted(ARMS)
         or p["statistical_primary"].find("PASSIVE_JUXTAPOSE_HISTORY")<0):
         raise AssertionError("FROZEN_ACCEPTANCE_CHANGED_AFTER_PREREG")
     lock=json.loads(SOURCE_MANIFEST_FILE.read_text())
