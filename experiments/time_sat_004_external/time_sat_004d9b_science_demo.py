@@ -36,7 +36,7 @@ def cases():
         },
         "linear_combination_no_increment": {
             "n": 4,
-            "rows": [[4 if abs(v)==3 else v for v in c] for c in XOR3_ONE]
+            "rows": [[4 if v==3 else -4 if v==-3 else v for v in c] for c in XOR3_ONE]
                     + [[3, -4], [-3, 4]],
             "explanation": "An implied x XOR y XOR z is a combination of known source XOR equations."
         },
