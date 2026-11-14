@@ -1,0 +1,31 @@
+name: JANUS JUXTAPOSE Markov R4 source-only SHA precommit
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-markov-r4-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose_markov_r4_sources.py
+      - .github/workflows/janus-juxtapose-markov-r4-source-only.yml
+permissions:
+  contents: read
+jobs:
+  freeze-original-CNF-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Sample original 120 SAT CNFs and commit no labels or outcomes
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_markov_r4_sources.py
+          --out evidence/markov-r4-sources/SHA_ONLY.json
+      - name: Save all original SHA precommit for later immutable lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: JUXTAPOSE-MARKOV-R4-sources-${{ github.run_id }}
+          path: evidence/markov-r4-sources/SHA_ONLY.json
+          retention-days: 90
