@@ -1,0 +1,77 @@
+name: JANUS JGPT online exact-XOR learned pivot search (two frozen cohorts)
+on:
+  push:
+    branches:
+      - research/time-sat-jgpt-online-juxtapose67-20261114
+    paths:
+      - experiments/time_sat_004_external/janus_jgpt_juxtapose67_online.py
+      - .github/workflows/janus-jgpt-juxtapose67-online-frozen.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-jgpt-online-juxtapose67-synthetic-training
+  cancel-in-progress: false
+jobs:
+  learned-shadow-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned CPU-only torch for isolated microtransformer
+        run: python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu 'torch==2.5.1+cpu'
+      - name: Train online from exact past-only receipts, score two frozen seed cohorts
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_juxtapose67_online.py
+          --out evidence/jgpt-online-67/RESULT.json
+          --checkpoint-dir evidence/jgpt-online-67/weights
+      - name: Assert 45 train 22 heldout and model never sees current exact labels
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('evidence/jgpt-online-67/RESULT.json').read_text())
+          assert x['seeds_predeclared']==[20261114,20261117]
+          assert x['heldout_weights_and_temperature_frozen'] and x['production_C023']=='UNCHANGED'
+          for r in x['reports']:
+              assert r['online_exact_train_updates']==90
+              assert r['number_of_parameters']>100
+              assert r['trained_weight_delta_l2']>0.0
+              assert r['development_full_exact_probes_for_labels']==405
+              assert len(r['records'])==67
+              assert len({t['source_sha256'] for t in r['records']})==67
+              assert all(t['phase']=='FROZEN_HOLDOUT' for t in r['records'][45:])
+              assert r['checkpoint']['trained_on_holdout'] is False
+              assert r['summary']['neural']['hits']==r['summary']['static']['hits']
+              assert len(r['checkpoint_sha256'])==64
+          print('JGPT_PROSPECTIVE_SEPARATION_AND_PROOF_REPLAY_PASS')
+          PY
+      - name: JGPT attention ranking cannot exploit numeric pivot token position
+        run: |
+          python - <<'PY'
+          import sys, torch
+          sys.path.insert(0, "experiments/time_sat_004_external")
+          from janus_jgpt_juxtapose67_online import JGPTSatPivotRanker
+          torch.manual_seed(42)
+          m=JGPTSatPivotRanker().eval()
+          x=torch.randn(9,12)
+          perm=torch.tensor([6,2,8,0,3,1,7,4,5])
+          with torch.no_grad():
+              a=m(x)
+              b=m(x[perm])
+          assert torch.allclose(a[perm],b,atol=1e-5), "PIVOT_POSITION_LEAK_IN_ATTENTION"
+          print("JGPT_POSITION_FREE_ATTENTION_TEST_PASS")
+          PY
+      - name: Persist all scored negatives, weights and independent original source receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JGPT-online-SAT-XOR-two-seeds-${{ github.run_id }}
+          path: evidence/jgpt-online-67/
+          retention-days: 90
+          if-no-files-found: warn
