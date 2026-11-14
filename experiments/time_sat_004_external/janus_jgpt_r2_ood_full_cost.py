@@ -111,6 +111,21 @@ def rank_inputs(rows,n,exp):
     up_eq={(tuple(x["variables"]),x["rhs"]) for x in up["baseline_equations"]}
     return known,up_eq
 
+def bounded_proof_probe(rows,n,pivot,known,up_eq):
+    """Never ask an original-width<=4 DAG verifier to replay width-5 parents.
+
+    Exact source SAT cases are retained unchanged. Unverifiable candidate
+    transitions ABSTAIN, not silently reclassified as proof or SAT UNSAT.
+    This controls a verifier capability boundary exposed by the first CI.
+    """
+    f=exact.feature(rows,pivot)
+    parents=f["pos"]+f["neg"]
+    if any(len(row)>4 for _,row in parents):
+        return {"pivot":pivot,"status":"ABSTAIN_SOURCE_PARENT_WIDTH_OVER4",
+                "pair_work":f["pair_work"],"new_keys":[],
+                "rank_delta":0,"rank_delta_over_UP":0}
+    return exact.exact_probe(rows,n,pivot,known,up_eq)
+
 def calibrate_train_only(logits,labels):
     if len(labels)<16:
         return 1.0
@@ -221,7 +236,7 @@ def run_seed(seed):
             labels=[]
             for pivot in selected:
                 t=perf_counter()
-                receipt=exact.exact_probe(rows,n,pivot,known,up_eq)
+                receipt=bounded_proof_probe(rows,n,pivot,known,up_eq)
                 train_exact_seconds+=perf_counter()-t
                 total_training_probes+=1
                 total_training_pairs+=receipt["pair_work"]
@@ -267,7 +282,7 @@ def run_seed(seed):
         cache={}
         t=perf_counter()
         for pivot in range(1,n+1):
-            cache[pivot]=exact.exact_probe(rows,n,pivot,known,up_eq)
+            cache[pivot]=bounded_proof_probe(rows,n,pivot,known,up_eq)
         audit_exact_seconds+=perf_counter()-t
         audit_exact_probes+=n
         random_order=list(range(1,n+1))
