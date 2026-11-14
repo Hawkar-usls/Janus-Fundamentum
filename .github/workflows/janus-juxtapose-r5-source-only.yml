@@ -1,0 +1,31 @@
+name: JANUS JUXTAPOSE R5 source-only original SHA preregistration
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-r5-zero-extra-labels-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose_r5_new_sources.py
+      - .github/workflows/janus-juxtapose-r5-source-only.yml
+permissions:
+  contents: read
+jobs:
+  preregister-original-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Create source SHA manifest without learning or proof scoring
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r5_new_sources.py
+          --out evidence/r5-source-only/ORIGINAL_SHA_ONLY.json
+      - name: Keep source-only manifest for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS-R5-ORIGINAL-SHA-ONLY-${{ github.run_id }}
+          path: evidence/r5-source-only/ORIGINAL_SHA_ONLY.json
+          retention-days: 90
