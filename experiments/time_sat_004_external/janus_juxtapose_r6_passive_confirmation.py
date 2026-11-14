@@ -75,6 +75,7 @@ def one_seed(seed,lock):
             t=perf_counter()
             if phase=="TRAIN":
                 source=exact.source_case(i)
+                source["source_logical_sha256"]=source["original_source_logical_sha256"]
             else:
                 slot=i-TRAIN
                 source=future.source(seed,slot)
