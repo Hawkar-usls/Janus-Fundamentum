@@ -122,8 +122,8 @@ class MarkovMemory:
         self.classes[candidate_class(f)][1]+=1
     def predict(self,prev,f):
         key=(prev,candidate_class(f))
-        h,n=self.transitions[key]
-        prior_h,prior_n=self.classes[candidate_class(f)]
+        h,n=self.transitions.get(key,(0,0))
+        prior_h,prior_n=self.classes.get(candidate_class(f),(0,0))
         # Stronger global fallback on sparse transition states, no future labels.
         local=(h+1)/(n+3)
         global_p=(prior_h+1)/(prior_n+3)
@@ -249,6 +249,7 @@ def run_seed(seed,freeze_map):
         if model["training_exact_receipts"]!=90:
             raise AssertionError("MARKOV_TRANSITION_COUNT_INCORRECT")
         learned_memory_size=len(model["transition_counts"])
+        checkpoint_guard=model_sha
         episodes=[]
         ood_shas=[]
         input_context_time=0.0
@@ -275,6 +276,9 @@ def run_seed(seed,freeze_map):
             ood_shas.append(source["source_logical_sha256"])
         if set(ood_shas).intersection(training_shas):
             raise AssertionError("HOLDOUT_SOURCE_LEAKAGE")
+        _,unchanged_sha=memory.snapshot(seed,training_shas)
+        if unchanged_sha!=checkpoint_guard:
+            raise AssertionError("HOLDOUT_MODEL_MUTATION_DETECTED")
         aggregates={}
         for arm in ARMS:
             stats=[r["all_arms"][arm] for r in episodes]
