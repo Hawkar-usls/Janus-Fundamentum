@@ -1,0 +1,66 @@
+name: Validate JANUS-PENROSE-002 cross-contour proof dependencies
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_penrose_002*.py'
+      - 'tests/test_penrose_002.py'
+      - 'docs/PENROSE_002_RESEARCH.md'
+      - '.github/workflows/validate-penrose-002.yml'
+  push:
+    paths:
+      - 'experiments/direct/janus_penrose_002*.py'
+      - 'tests/test_penrose_002.py'
+      - 'docs/PENROSE_002_RESEARCH.md'
+      - '.github/workflows/validate-penrose-002.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: penrose-002-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-contour-falsification:
+    name: cross-contour-injected-cycles
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reject forged receipts, future dependencies and wrong proof inputs
+        run: python -m unittest discover -s tests -p 'test_penrose_002.py' -v
+      - name: Prove old Penrose-001 schedule integrity unchanged
+        run: python -m unittest discover -s tests -p 'test_penrose_001.py' -v
+      - name: Replay unchanged strict C023 serialized reference verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  live-large-maj3-cross-contour:
+    name: live-MAJ3-K4-UFR-certificate-oracle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Replay real MAJ3-K4 UFR certificate, verify oracle and causal DAG
+        run: >-
+          python experiments/direct/janus_penrose_002_benchmark.py
+          --fixture MAJ3_K4
+          --samples 32 --max-iso-edges 8
+          --out evidence/penrose-002-MAJ3.json
+          --proof evidence/penrose-002-MAJ3-UFR-certificate.json
+      - name: Retain independent proof and source-bound DAG receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: penrose-002-MAJ3-causal-proof
+          path: |
+            evidence/penrose-002-MAJ3.json
+            evidence/penrose-002-MAJ3-UFR-certificate.json
+          if-no-files-found: warn
+          retention-days: 30

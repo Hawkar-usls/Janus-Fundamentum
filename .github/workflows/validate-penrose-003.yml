@@ -1,0 +1,113 @@
+name: JANUS PENROSE-003 independent proof transfer witness
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_penrose_003*.py'
+      - 'tests/test_penrose_003.py'
+      - 'docs/PENROSE_003_INDEPENDENT_WITNESS.md'
+      - '.github/workflows/validate-penrose-003.yml'
+  push:
+    paths:
+      - 'experiments/direct/janus_penrose_003*.py'
+      - 'tests/test_penrose_003.py'
+      - 'docs/PENROSE_003_INDEPENDENT_WITNESS.md'
+      - '.github/workflows/validate-penrose-003.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: penrose-003-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-hostile-transit:
+    name: independent-unit-handoff-negatives
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reject SHA-consistent but invalid proof, stale workflow and crossed source
+        run: python -m unittest discover -s tests -p 'test_penrose_003.py' -v
+      - name: Preserve earlier Penrose-002 forged certificate/graph checks
+        run: python -m unittest discover -s tests -p 'test_penrose_002.py' -v
+      - name: Preserve original C023 independent serialized verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+
+  producer:
+    name: isolated-untrusted-proof-producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Produce actual MAJ3-K4 UFR proof and source-bound Penrose-002 DAG
+        run: >-
+          python experiments/direct/janus_penrose_002_benchmark.py
+          --fixture MAJ3_K4 --samples 32 --max-iso-edges 8
+          --out evidence/penrose-002-MAJ3.json
+          --proof evidence/penrose-002-MAJ3-UFR-certificate.json
+      - name: Seal UNTRUSTED transport manifest (not a signature)
+        run: >-
+          python experiments/direct/janus_penrose_003_transfer.py
+          --report evidence/penrose-002-MAJ3.json
+          --proof evidence/penrose-002-MAJ3-UFR-certificate.json
+          --manifest evidence/penrose-003-handoff.json
+      - name: Upload real proof and handoff files across execution boundary
+        uses: actions/upload-artifact@v4
+        with:
+          name: penrose-003-untrusted-producer-artifact
+          path: |
+            evidence/penrose-002-MAJ3.json
+            evidence/penrose-002-MAJ3-UFR-certificate.json
+            evidence/penrose-003-handoff.json
+          retention-days: 30
+          if-no-files-found: error
+
+  independent-witness:
+    name: independent-witness-${{ matrix.runner }}
+    needs: [producer, unit-hostile-transit]
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 12
+    steps:
+      - name: Independent source checkout (never trust producer files as code)
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download untrusted proof payload from OTHER runner/job
+        uses: actions/download-artifact@v4
+        with:
+          name: penrose-003-untrusted-producer-artifact
+          path: evidence
+      - name: Rebuild formula, replay proof, audit oracle, inject 10 transit failures
+        env:
+          TRUSTED_SHA: ${{ github.sha }}
+          TRUSTED_RUN: ${{ github.run_id }}
+          WITNESS_OS: ${{ matrix.runner }}
+        run: >-
+          python experiments/direct/janus_penrose_003_witness.py
+          --manifest evidence/penrose-003-handoff.json
+          --report evidence/penrose-002-MAJ3.json
+          --proof evidence/penrose-002-MAJ3-UFR-certificate.json
+          --out evidence/penrose-003-${{ matrix.runner }}.json
+          --trusted-head "$TRUSTED_SHA"
+          --trusted-run "$TRUSTED_RUN"
+      - name: Archive independent verified witness decision and hostile-case receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: penrose-003-witness-${{ matrix.runner }}
+          path: evidence/penrose-003-${{ matrix.runner }}.json
+          retention-days: 30
+          if-no-files-found: warn
