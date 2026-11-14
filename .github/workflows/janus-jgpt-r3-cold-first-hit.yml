@@ -1,0 +1,85 @@
+name: JANUS JGPT R3 cold first verified XOR + frozen original SHA science gate
+on:
+  push:
+    branches:
+      - research/time-sat-jgpt-r3-cold-first-hit-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_jgpt_r3_cold_first_hit.py
+      - experiments/time_sat_004_external/janus_jgpt_r3_ood_sources.py
+      - experiments/time_sat_004_external/JGPT_R3_COLD_FIRST_HIT_PROTOCOL_20261115.json
+      - experiments/time_sat_004_external/JGPT_R3_COLD_FROZEN_SOURCE_MANIFEST_20261115.json
+      - .github/workflows/janus-jgpt-r3-cold-first-hit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-jgpt-r3-research-only
+  cancel-in-progress: false
+jobs:
+  r3-cold-first-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONHASHSEED: '0'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed CPU-only PyTorch
+        run: python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu 'torch==2.5.1+cpu'
+      - name: Fail closed on modified preregistration or exact original CNF manifest
+        run: |
+          test "$(git hash-object experiments/time_sat_004_external/JGPT_R3_COLD_FIRST_HIT_PROTOCOL_20261115.json)" = '6c5df2509af4f3bc29a0af77fa4b85c7a121c897'
+          test "$(git hash-object experiments/time_sat_004_external/JGPT_R3_COLD_FROZEN_SOURCE_MANIFEST_20261115.json)" = '77a6bdb0889a926c04e02225aa03473796ed42bf'
+      - name: Fit source-proof teacher and run new frozen 66-CNF R3 first-proof test
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_r3_cold_first_hit.py
+          --out evidence/jgpt-r3/attempt1.json
+          --checkpoint-dir evidence/jgpt-r3/ckpt1
+      - name: Same CPU, same SHA, second independent train/evaluate
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_r3_cold_first_hit.py
+          --out evidence/jgpt-r3/attempt2.json
+          --checkpoint-dir evidence/jgpt-r3/ckpt2
+      - name: Strict model/source consistency + no loss of exact existence hits
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('evidence/jgpt-r3/attempt1.json').read_text())
+          b=json.loads(Path('evidence/jgpt-r3/attempt2.json').read_text())
+          assert a['protocol_git_blob']==b['protocol_git_blob']=='6c5df2509af4f3bc29a0af77fa4b85c7a121c897'
+          assert a['preregistered_original_cnf_manifest_git_blob']==b['preregistered_original_cnf_manifest_git_blob']=='77a6bdb0889a926c04e02225aa03473796ed42bf'
+          assert a['seeds_preregistered']==[2026111511,2026111512,2026111513]
+          assert a['total_new_ood_sources']==b['total_new_ood_sources']==66
+          assert a['COLD_first_verified_hit_target_only'] and a['full_rank_inventory_in_early_mode']=='NOT_CLAIMED'
+          assert a['production_C023']=='UNCHANGED' and a['R6']=='FROZEN_SCIENCE_GATE_NOT_PASSED'
+          for one,two in zip(a['reports'],b['reports']):
+              assert one['seed']==two['seed']
+              assert one['model_sha256']==two['model_sha256'],'QUANTIZED_WEIGHTS_SHA_MISMATCH'
+              assert one['holdout_source_shas']==two['holdout_source_shas']
+              assert one['amortized_cost_exact_probes_and_symbolic_pairs']==two['amortized_cost_exact_probes_and_symbolic_pairs']
+              assert one['charge_real_training_proof_labels']==90
+              assert one['charge_validation_audit_holdout_probes']==308
+              assert one['weights_train_only'] and one['holdout_labels_never_learned']
+              assert one['early_exit_preserves_only_first_verified_hit_not_full_XOR_inventory']
+              results=one['amortized_cost_exact_probes_and_symbolic_pairs']
+              assert len({v['new_verified_math_hits'] for v in results.values()})==1
+              assert results['neural_sparse_2']['holdout_exact_pivot_checks'] <= results['teacher_original_exhaustive_cold']['holdout_exact_pivot_checks']
+          print('JGPT_R3_FROZEN_SHA_AND_FIRST_PROOF_INVARIANT_PASS')
+          PY
+      - name: Preserve each negative/abstention, comparison and model checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jgpt-r3-new-ood-first-exact-proofs-${{ github.run_id }}
+          path: evidence/jgpt-r3/
+          retention-days: 90
+          if-no-files-found: warn
