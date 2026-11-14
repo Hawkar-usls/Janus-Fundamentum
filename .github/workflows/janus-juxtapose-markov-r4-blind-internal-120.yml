@@ -1,0 +1,81 @@
+name: JANUS Markov x JUXTAPOSE R4 120 frozen CNF statistical replay
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-markov-r4-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose_markov_r4_benchmark.py
+      - experiments/time_sat_004_external/JUXTAPOSE_MARKOV_R4_ORIGINAL_SHA_MANIFEST_20261115.json
+      - experiments/time_sat_004_external/JUXTAPOSE_MARKOV_R4_FROZEN_PROTOCOL_20261115.json
+      - .github/workflows/janus-juxtapose-markov-r4-blind-internal-120.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-juxtapose-markov-r4-research
+  cancel-in-progress: false
+jobs:
+  markov-vs-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fail if preregistered R4 source manifests have moved
+        run: |
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_MARKOV_R4_FROZEN_PROTOCOL_20261115.json)" = '2801a70000022a76e2e0218a6172e4476f9c8d40'
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_MARKOV_R4_ORIGINAL_SHA_MANIFEST_20261115.json)" = 'be93c8ca88f4a0b58274f9f7f1807fefa43311ac'
+      - name: Test 4 Markov/JUXTAPOSE cohorts with original exact proof replay
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_markov_r4_benchmark.py
+          --out evidence/markov-r4/attempt1.json
+          --memory-dir evidence/markov-r4/memory1
+      - name: Independent repeat on same frozen code and sources
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_markov_r4_benchmark.py
+          --out evidence/markov-r4/attempt2.json
+          --memory-dir evidence/markov-r4/memory2
+      - name: Check SHA repetition, zero holdout learning, equal hit coverage and negative retention
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('evidence/markov-r4/attempt1.json').read_text())
+          b=json.loads(Path('evidence/markov-r4/attempt2.json').read_text())
+          assert a['new_ood_cases']==b['new_ood_cases']==120
+          assert a['frozen_protocol_blob']==b['frozen_protocol_blob']=='2801a70000022a76e2e0218a6172e4476f9c8d40'
+          assert a['frozen_original_CNF_source_manifest_blob']==b['frozen_original_CNF_source_manifest_blob']=='be93c8ca88f4a0b58274f9f7f1807fefa43311ac'
+          assert a['predeclared_seeds']==b['predeclared_seeds']==[2026111551,2026111552,2026111553,2026111554]
+          assert a['no_transformer']=='YES' and a['production_C023']=='UNCHANGED'
+          for x,y in zip(a['reports'],b['reports']):
+              assert x['seed']==y['seed']
+              assert x['markov_first_order_memory_checkpoint_sha256']==y['markov_first_order_memory_checkpoint_sha256'],'MARKOV_MEMORY_SHA_NOT_REPRODUCIBLE'
+              assert x['holdout_source_shas']==y['holdout_source_shas']
+              assert x['training_exact_label_count']==y['training_exact_label_count']==90
+              assert x['heldout_predictions_update_global_model'] is False
+              for arm,u in x['summaries'].items():
+                  v=y['summaries'][arm]
+                  for key in ('holdout_exact_probes','holdout_pair_work','holdout_verified_source_hit_cases','total_amortized_exact_probes','total_amortized_pair_work'):
+                      assert u[key]==v[key],f'NEURAL_FREE_REPLAY_METRIC_CHANGED {x["seed"]} {arm} {key}'
+              assert len({u['holdout_verified_source_hit_cases'] for u in x['summaries'].values()})==1,'MATHEMATICAL_HIT_COVERAGE_CHANGED'
+              assert len(x['all_source_proof_receipts'])==30
+              for entry in x['all_source_proof_receipts']:
+                  assert entry['no_holdout_feedback_to_transition_table']
+                  assert entry['original_SAT_model_replayed']
+                  assert set(entry['all_arms'])=={'JUXTAPOSE_MARKOV_HYBRID','JUXTAPOSE_ORIGINAL','MARKOV_ONLY','STATIC_FIRST_HIT','RANDOM_FIRST_HIT'}
+          print('MARKOV_R4_PROVENANCE_AND_DETERMINISTIC_COUNT_REPLAY_PASS')
+          PY
+      - name: Publish all original SHA-bound evidence including nulls and Markov memory checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JUXTAPOSE-MARKOV-R4-120-CNFS-${{ github.run_id }}
+          path: evidence/markov-r4/
+          retention-days: 90
+          if-no-files-found: warn
