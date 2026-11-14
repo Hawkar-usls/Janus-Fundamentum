@@ -1,0 +1,55 @@
+name: JANUS JUXTAPOSE x67 source-bound SAT XOR test
+on:
+  push:
+    branches:
+      - research/time-sat-jxtapose67-20261114
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose67_sat_xor.py
+      - .github/workflows/time-sat-juxtapose67-source-bound.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-juxtapose67-synthetic-sat-replay
+  cancel-in-progress: false
+jobs:
+  exact-source-probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run 67 adaptive episodes + static/random + UP baseline and exact proof checks
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose67_sat_xor.py
+          --out evidence/juxtapose67/REPORT.json
+      - name: Assert all 67 source SHA distinct and holdout remained frozen
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("evidence/juxtapose67/REPORT.json"))
+          assert x["cycles"]==67 and x["development"]==45 and x["internal_frozen_holdout"]==22
+          assert len({p["source_SHA256"] for p in x["all_records"]})==67
+          assert all(p["phase"]=="FROZEN_INTERNAL_HOLDOUT" for p in x["all_records"][45:])
+          assert x["external_science_gate"]=="OPEN" and x["production_C023"]=="UNCHANGED"
+          assert x["R6_FROZEN_SCIENCE_GATE"]=="NOT_PASSED_UNCHANGED"
+          for seg in ("train","holdout"):
+            assert x["summary"][seg]["hybrid"]["exact_mathematical_hits"]==x["summary"][seg]["static"]["exact_mathematical_hits"]
+          print("JUXTAPOSE67_INVARIANTS_PASS")
+          PY
+      - name: Preserve original source and every negative/null receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-juxtapose67-${{ matrix.os }}-${{ github.run_id }}
+          path: evidence/juxtapose67/REPORT.json
+          retention-days: 90
+          if-no-files-found: warn
