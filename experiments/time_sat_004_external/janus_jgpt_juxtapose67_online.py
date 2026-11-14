@@ -45,6 +45,7 @@ STEPS_PER_EPISODE=2
 TEMPERATURES=(0.7,1.0,1.3,1.7,2.3)
 BATCH_TOTAL=9
 MODEL_LINEAGE="JGPT_CODEX(2).py / ByteTransformer / MIT / architecture-inspired fresh SAT weights"
+JGPT_SOURCE_SHA256="3b594ad258d8afb4d571f5cae9e87f0194e246a9a1fe517fd87a6df1b5f69606"
 SCHEMA="JANUS-JGPT-JUXTAPOSE67-ONLINE-PROSPECTIVE-SYNTHETIC-V1"
 
 def tensor_features(rows,n):
@@ -136,6 +137,8 @@ def run_seed(seed):
         torch.manual_seed(seed)
         random.seed(seed)
         torch.set_num_threads(1)
+        torch.use_deterministic_algorithms(True)
+        torch.backends.mkldnn.enabled=False
         model=JGPTSatPivotRanker()
         initial_weights={name:p.detach().clone() for name,p in model.named_parameters()}
         opt=torch.optim.AdamW(model.parameters(),lr=LR,weight_decay=0.01)
@@ -276,6 +279,7 @@ def run_seed(seed):
         checkpoint={
             "schema":"JANUS-JGPT-SAT-CANDIDATE-WEIGHT-CHECKPOINT-V1",
             "source_model_architecture":MODEL_LINEAGE,
+            "user_source_file_sha256":JGPT_SOURCE_SHA256,
             "training_seed":seed,
             "trained_only_on_first_cycles":TRAIN,
             "train_source_sha256":[r["source_sha256"] for r in rows_out[:TRAIN]],
@@ -331,6 +335,7 @@ def main():
       "schema":SCHEMA,
       "run_intent":"PROSPECTIVE_INTERNAL_ADAPTIVE_EXACT_RANK_LEARNING_ONLY",
       "source_model_lineage":MODEL_LINEAGE,
+      "original_jgpt_source_sha256":JGPT_SOURCE_SHA256,
       "original_JGPT_byteLM_weights_imported":False,
       "seeds_predeclared":list(SEEDS),
       "cycles_each":TRAIN+HOLDOUT,"train_each":TRAIN,"holdout_each":HOLDOUT,
