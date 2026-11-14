@@ -257,6 +257,18 @@ def experiment():
     if any(summary[part]["hybrid"]["exact_mathematical_hits"]!=
            summary[part]["static"]["exact_mathematical_hits"] for part in summary):
         raise AssertionError("Exact hit coverage changed")
+    # This exported fit contains data from cycles 1..45 ONLY. All holdout
+    # evaluation messages are excluded from the solver's frozen policy.
+    model={
+        "schema":"JANUS-JUXTAPOSE67-PAST-ONLY-PIVOT-FIT-V1",
+        "seed":SEED,"training_cycles":TRAIN_CYCLES,
+        "training_source_shas":[r["source_SHA256"] for r in records[:TRAIN_CYCLES]],
+        "experience":{key:list(value) for key,value in sorted(experience.items())},
+        "family_counts":{",".join(map(str,key)):value for key,value in sorted(family_counts.items())},
+        "heldout_cycle_results_in_fit":False,
+        "prior_only_authority":True,
+        "source_lineage_SHA256":ALGORITHM_LINEAGE_SHA256
+    }
     return {
         "schema":"JANUS-JUXTAPOSE-X67-SAT-XOR-SYNTHETIC-SOURCE-BOUND-V1",
         "lineage":{
@@ -274,17 +286,22 @@ def experiment():
         "R6_FROZEN_SCIENCE_GATE":"NOT_PASSED_UNCHANGED",
         "production_C023":"UNCHANGED",
         "summary":summary,
-        "all_records":records
+        "all_records":records,
+        "frozen_model":model
     }
 
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",type=Path)
+    ap.add_argument("--model-out",type=Path)
     args=ap.parse_args()
     data=experiment()
     if args.out:
         args.out.parent.mkdir(parents=True,exist_ok=True)
         args.out.write_text(json.dumps(data,sort_keys=True,indent=2)+"\n")
+    if args.model_out:
+        args.model_out.parent.mkdir(parents=True,exist_ok=True)
+        args.model_out.write_text(json.dumps(data["frozen_model"],sort_keys=True,indent=2)+"\n")
     print(json.dumps({"status":"SYNTHETIC_67_CYCLES_PROOF_REPLAY_PASS",
                       "summary":data["summary"]},sort_keys=True))
 if __name__=="__main__":
