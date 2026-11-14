@@ -137,6 +137,7 @@ def run_seed(seed):
         random.seed(seed)
         torch.set_num_threads(1)
         model=JGPTSatPivotRanker()
+        initial_weights={name:p.detach().clone() for name,p in model.named_parameters()}
         opt=torch.optim.AdamW(model.parameters(),lr=LR,weight_decay=0.01)
         experience={}
         fingerprints=defaultdict(int)
@@ -262,6 +263,12 @@ def run_seed(seed):
             "frozen_temperature":temp,
             "prediction_count":len(hp)
         }
+        trained_weight_delta_l2=math.sqrt(sum(
+            float(torch.sum((p.detach()-initial_weights[name])**2).item())
+            for name,p in model.named_parameters()
+        ))
+        if not trained_weight_delta_l2>1e-8:
+            raise AssertionError("JGPT weights did not actually learn")
         state={name:{
                     "shape":list(t.shape),
                     "values":[float(x) for x in t.detach().cpu().flatten().tolist()]}
@@ -293,6 +300,9 @@ def run_seed(seed):
             "summary":summary,
             "train_wall_seconds":train_seconds,
             "inference_wall_seconds_all67":infer_seconds,
+            "trained_weight_delta_l2":trained_weight_delta_l2,
+            "development_full_exact_probes_for_labels":TRAIN*n,
+            "neural_training_vs_heuristic_training_work_fairness":"EXTRA_405_FULL_ORACLE_PROBES_IN_NEURAL_TRAIN_COST_MUST_BE_CHARGED",
             "number_of_parameters":sum(p.numel() for p in model.parameters()),
             "online_exact_train_updates":TRAIN*STEPS_PER_EPISODE,
             "prequential_history":train_checkpoints,
@@ -343,6 +353,8 @@ def main():
         "checkpoint_sha256":r["checkpoint_sha256"],
         "train_seconds":round(r["train_wall_seconds"],3),
         "inference_seconds":round(r["inference_wall_seconds_all67"],3),
+        "weights_changed_L2":round(r["trained_weight_delta_l2"],6),
+        "extra_train_oracle_probes":r["development_full_exact_probes_for_labels"],
         "holdout":r["summary"]
       } for r in reports]
     },sort_keys=True))
