@@ -16,6 +16,7 @@ sys.path.insert(0,str(EXT))
 from time_sat_004d9b_science_demo import demonstrate, cases, satisfying_assignments
 from time_sat_004d9b_trust_gate import approved_policy, _check_lock_structure
 from time_sat_004d9b_benchmark import protocol, source_info, EXPECTED_ARMS
+from time_sat_004d9b_up_cleanroom_baseline import baseline_case, full_xor_signmasks, rank as clean_rank
 
 class ReviewerPackageTest(unittest.TestCase):
     def test_math_demo_positive_null_negative_and_bruteforce(self):
@@ -32,6 +33,23 @@ class ReviewerPackageTest(unittest.TestCase):
             self.assertGreater(len(satisfying_assignments(case["rows"],case["n"])),0)
             self.assertEqual(data[name]["independent_truth_table_entailment"],"PASS")
             self.assertEqual(data[name]["independent_resolution_dag_replay"],"PASS")
+
+    def test_unit_propagation_recovers_toy_xor_without_janus(self):
+        guarded=cases()["guarded_source_derived_rank"]
+        direct=baseline_case(guarded["n"],guarded["rows"])
+        self.assertEqual(direct["status"],"UP_AND_COMPLETE_SIGNMASK_XOR_BASELINE_READY")
+        self.assertEqual(direct["unit_assignments"],{"4":False})
+        post={(tuple(x["variables"]),x["rhs"]) for x in direct["post_UP_equations"]}
+        self.assertIn(((1,2,3),1),post)
+        self.assertIn(((4,),0),{(tuple(x["variables"]),x["rhs"])
+                                 for x in direct["baseline_equations"]})
+        janus=demonstrate()["examples"][0]
+        janus_equations={(tuple(x["variables"]),x["rhs"])
+                         for x in janus["explicit_xor"]+janus["derived_xor"]}
+        baseline={(tuple(x["variables"]),x["rhs"])
+                  for x in direct["baseline_equations"]}
+        self.assertEqual(clean_rank(baseline|janus_equations,4)-clean_rank(baseline,4),0)
+        self.assertEqual(clean_rank(baseline,4),2)
 
     def test_original_empty_policy_stays_git_sha_frozen(self):
         old=EXT/"PREREGISTERED_004D9_EXTERNAL_WITNESS_INTAKE_20261102.json"
