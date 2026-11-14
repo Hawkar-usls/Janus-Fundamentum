@@ -1,0 +1,83 @@
+name: JANUS JUXTAPOSE R6 prospective passive-memory amortized true wall test
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-r6-passive-prospective-20261115
+    paths:
+      - .github/workflows/janus-juxtapose-r6-passive-prospective.yml
+      - experiments/time_sat_004_external/janus_juxtapose_r6_passive_confirmation.py
+      - experiments/time_sat_004_external/janus_juxtapose_r6_sources.py
+      - experiments/time_sat_004_external/JUXTAPOSE_R6_PASSIVE_PROSPECTIVE_PROTOCOL_20261115.json
+      - experiments/time_sat_004_external/JUXTAPOSE_R6_FROZEN_240_SOURCE_MANIFEST_20261115.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-juxtapose-r6-prospective-sameadmin
+  cancel-in-progress: false
+jobs:
+  passive-memory-prospective:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PYTHONHASHSEED: '0'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fail closed if pre-registered protocol or original CNF SHA differs
+        run: |
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_R6_PASSIVE_PROSPECTIVE_PROTOCOL_20261115.json)" = '309c7b255e544024148ae13165a989cd9aaa7aea'
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_R6_FROZEN_240_SOURCE_MANIFEST_20261115.json)" = 'a4a8f8c00046e5bdcea38ae7a19c416c1ca0412f'
+      - name: Full train-plus-holdout real source-exact-search timing attempt 1
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r6_passive_confirmation.py
+          --out evidence/juxtapose-r6/attempt1.json
+          --checkpoint-dir evidence/juxtapose-r6/ckpt1
+      - name: Attempt 2 on same worker/code, check reproducibility of all exact counts
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r6_passive_confirmation.py
+          --out evidence/juxtapose-r6/attempt2.json
+          --checkpoint-dir evidence/juxtapose-r6/ckpt2
+      - name: Safely compare mathematical provenance, model memories and full measured cost gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('evidence/juxtapose-r6/attempt1.json').read_text())
+          b=json.loads(Path('evidence/juxtapose-r6/attempt2.json').read_text())
+          assert a['protocol_blob']==b['protocol_blob']=='309c7b255e544024148ae13165a989cd9aaa7aea'
+          assert a['precommitted_original_CNF_manifest_blob']==b['precommitted_original_CNF_manifest_blob']=='a4a8f8c00046e5bdcea38ae7a19c416c1ca0412f'
+          assert a['unseen_original_CNF_sha_count']==b['unseen_original_CNF_sha_count']==240
+          assert a['seeds']==b['seeds']==[2026111661,2026111662,2026111663,2026111664]
+          assert a['production_C023']=='UNCHANGED' and a['external_independent_validation']=='NOT_PERFORMED'
+          for x,y in zip(a['reports'],b['reports']):
+              assert x['seed']==y['seed']
+              assert x['original_source_shas_holdout']==y['original_source_shas_holdout']
+              assert x['original_source_shas_training']==y['original_source_shas_training']
+              assert x['frozen_memory_SHA_before_holdout']==y['frozen_memory_SHA_before_holdout']
+              for arm,v in x['statistics'].items():
+                  w=y['statistics'][arm]
+                  assert v['memory_sha256']==w['memory_sha256'],f"MEMORY_SHA_CHANGED {x['seed']} {arm}"
+                  for f in ('train_exact_probes','holdout_exact_probes','train_extra_probes','total_lifetime_exact_probes','total_lifetime_source_parent_pair_work','holdout_math_hit_cases'):
+                      assert v[f]==w[f],f"NONDETERMINISTIC_EXACT_PROOF {x['seed']} {arm} {f}"
+                  if arm.startswith('PASSIVE_'):assert v['train_extra_probes']==0
+              assert len({v['holdout_math_hit_cases'] for v in x['statistics'].values()})==1
+          # Time is measured, noisy and not expected to be byte identical.
+          if a['scientific_gate']['status']!=b['scientific_gate']['status']:
+              print('SCIENCE_GATE_NOISY_ACROSS_TWO_REPEATS_NO_PROMOTION')
+          print('JUXTAPOSE_R6_FROZEN_SHA_AND_NO_EXTRA_LABELS_REPLAY_PASS')
+          PY
+      - name: Persist all 240 source proofs, negative controls, complete training costs and SHA checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JUXTAPOSE-R6-240-FRESH-CNF-${{ github.run_id }}
+          path: evidence/juxtapose-r6/
+          retention-days: 90
+          if-no-files-found: warn
