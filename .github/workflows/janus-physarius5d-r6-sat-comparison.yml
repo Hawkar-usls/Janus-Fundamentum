@@ -1,0 +1,86 @@
+name: JANUS PHYSARIUS 5D original navigation vs JUXTAPOSE eight-arm SAT-XOR
+on:
+  push:
+    branches:
+      - research/time-sat-physarius5d-vs-juxtapose-r6-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_physarius_r6_vs_juxtapose.py
+      - experiments/time_sat_004_external/janus_physarius_r6_sources.py
+      - experiments/time_sat_004_external/PHYSARIUS5D_JUXTAPOSE_R6_FROZEN_PROTOCOL_20261115.json
+      - experiments/time_sat_004_external/PHYSARIUS_R6_120_SOURCE_SHA_MANIFEST_20261115.json
+      - .github/workflows/janus-physarius5d-r6-sat-comparison.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-physarius5d-juxtapose-r6-evidence
+  cancel-in-progress: false
+jobs:
+  synthetic_8_arm_exact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check immutable frozen original PHYSARIUS, full source and R6 protocol
+        run: |
+          test "$(git hash-object tools/physarius_5d_spiral.py)" = '59f0d9145eeaa2849e2600a5d6774ba9e3c44089'
+          test "$(git hash-object registry/PHYSARIUS_5D_SPIRAL_CONTRACT_v1.json)" = 'bf05cc1d99c53f26d7c81b3aff38a853a5acdee7'
+          test "$(git hash-object experiments/time_sat_004_external/PHYSARIUS5D_JUXTAPOSE_R6_FROZEN_PROTOCOL_20261115.json)" = '7989b45a633a6be1a4de8995ae5b8306a0d82511'
+          test "$(git hash-object experiments/time_sat_004_external/PHYSARIUS_R6_120_SOURCE_SHA_MANIFEST_20261115.json)" = '99ab36fb83860d5cc97ac6ff7050c22f4e128b7a'
+      - name: All 8 exact-proven SAT selection arms on 4 new x30 original SHA fixtures
+        run: >-
+          python experiments/time_sat_004_external/janus_physarius_r6_vs_juxtapose.py
+          --out evidence/physarius5d-r6/attempt1.json
+          --memory-dir evidence/physarius5d-r6/memory1
+      - name: Same CPU/commit rerun all 8 arms and source SHA
+        run: >-
+          python experiments/time_sat_004_external/janus_physarius_r6_vs_juxtapose.py
+          --out evidence/physarius5d-r6/attempt2.json
+          --memory-dir evidence/physarius5d-r6/memory2
+      - name: Fail closed on any wrong source, learned label drift, proof coverage change
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("evidence/physarius5d-r6/attempt1.json").read_text())
+          b=json.loads(Path("evidence/physarius5d-r6/attempt2.json").read_text())
+          assert a['schema']=='JANUS-PHYSARIUS5D-JUXTAPOSE-R6-120-NEW-SHA-CONTROLLED-SAT-XOR-V1'
+          assert a['protocol_blob']==b['protocol_blob']=='7989b45a633a6be1a4de8995ae5b8306a0d82511'
+          assert a['original_SHA_source_manifest_blob']==b['original_SHA_source_manifest_blob']=='99ab36fb83860d5cc97ac6ff7050c22f4e128b7a'
+          assert a['PHYSARIUS_5D_original_code_blob']=='59f0d9145eeaa2849e2600a5d6774ba9e3c44089'
+          assert a['preregistered_seeds']==b['preregistered_seeds']==[2026111561,2026111562,2026111563,2026111564]
+          assert a['all_120_OOD_CNF_SHA_distinct_and_frozen'] and a['no_extra_source_probes_for_passive_training']
+          assert a['production_C023']=='UNCHANGED'
+          for u,v in zip(a['reports'],b['reports']):
+              assert u['train_source_shas']==v['train_source_shas']
+              assert u['holdout_source_shas']==v['holdout_source_shas']
+              assert len(u['holdout_source_shas'])==30
+              assert u['frozen_holdout_memory_unchanged']
+              assert u['same_math_proof_coverage_all_arms']
+              assert len({z['verified_holdout_positive_cases'] for z in u['summary'].values()})==1
+              assert u['summary']['PHYSARIUS_5D_METADATA_ONLY']['train_unique_extra_oracle_probes']==0
+              assert u['summary']['PHYSARIUS_5D_PLUS_PASSIVE_JUXTAPOSE']['train_unique_extra_oracle_probes']==0
+              for arm,x in u['summary'].items():
+                  y=v['summary'][arm]
+                  assert x['memory_sha256']==y['memory_sha256']
+                  for metric in ('train_original_task_exact_probes_plus_extra',
+                                 'holdout_exact_probes','train_plus_holdout_exact_probes',
+                                 'train_plus_holdout_pair_work','verified_holdout_positive_cases'):
+                      assert x[metric]==y[metric],f'NONDETERMINISTIC_COUNT {arm} {metric}'
+          print('PHYSARIUS5D_R6_FROZEN_CNF_PROOF_AND_MODEL_MEMORY_REPLAY_PASS')
+          PY
+      - name: Save complete source-bound negative/positive receipts, raw metrics and memory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS-PHYSARIUS5D-R6-120-NEW-CNF-${{ github.run_id }}
+          path: evidence/physarius5d-r6/
+          retention-days: 90
+          if-no-files-found: warn
