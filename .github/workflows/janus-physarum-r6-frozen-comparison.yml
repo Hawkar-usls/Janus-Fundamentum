@@ -1,0 +1,104 @@
+name: JANUS Physarum vs JUXTAPOSE/Markov eight-arm 120 SHA-frozen CNF
+on:
+  push:
+    branches:
+      - research/time-sat-physarum-juxtapose-r6-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_physarum_r6_benchmark.py
+      - experiments/time_sat_004_external/janus_physarum_r6_network.py
+      - experiments/time_sat_004_external/PHYSARUM_R6_NEW_ORIGINAL_SHA_MANIFEST_20261115.json
+      - experiments/time_sat_004_external/PHYSARUM_JUXTAPOSE_R6_FROZEN_PROTOCOL_20261115.json
+      - .github/workflows/janus-physarum-r6-frozen-comparison.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-physarum-r6-frozen-research
+  cancel-in-progress: false
+jobs:
+  exact-proof-physarum-vs-jux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONHASHSEED: '0'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed original Physarum matrix dependency
+        run: >-
+          python -m pip install --disable-pip-version-check
+          --only-binary=:all: 'numpy==2.3.5'
+      - name: Verify literal immutable SHA of protocol and 120 original CNFs
+        run: |
+          test "$(git hash-object experiments/time_sat_004_external/PHYSARUM_JUXTAPOSE_R6_FROZEN_PROTOCOL_20261115.json)" = '1ff4651d18a2ae99af41b57194f2f4263728613c'
+          test "$(git hash-object experiments/time_sat_004_external/PHYSARUM_R6_NEW_ORIGINAL_SHA_MANIFEST_20261115.json)" = '1c508d11e7689fc55b21a7e9633bab86852e94fb'
+      - name: Sanity check user's Physarum Tero equations and finite symmetric source flow
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"experiments/time_sat_004_external")
+          import numpy as np
+          from janus_physarum_r6_network import PhysarumNetwork,SATPhysarum
+          x=PhysarumNetwork([(0,0),(1,1),(2,1)])
+          q=x.step(0,1)
+          assert np.isfinite(q).all() and np.allclose(q,-q.T)
+          assert np.isfinite(x.D).all() and np.allclose(x.D,x.D.T)
+          assert all(x.D[i,j]>0 for i in range(3) for j in range(3) if i!=j)
+          p=SATPhysarum()
+          assert p.network.n==17
+          assert p.state()['source_file_sha256']=='e0e7a7d6f62acbae18a68141c4708f9d0006679d5e58bb95f36bc74c398dcf13'
+          print('USER_PHYSARUM_TERO_PRESSURE_AND_CONDUCTIVITY_SANITY_PASS')
+          PY
+      - name: First trial four seeds, eight arms, full exact parent-proof + source SAT model
+        run: >-
+          python experiments/time_sat_004_external/janus_physarum_r6_benchmark.py
+          --out evidence/physarum-r6/replay1.json
+          --memory-dir evidence/physarum-r6/models1
+      - name: Repeat same SHA on same CPU machine and verify source/model integrity
+        run: >-
+          python experiments/time_sat_004_external/janus_physarum_r6_benchmark.py
+          --out evidence/physarum-r6/replay2.json
+          --memory-dir evidence/physarum-r6/models2
+      - name: Assert eight-arm equal mathematical evidence, model SHA, costs and no future learning
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("evidence/physarum-r6/replay1.json").read_text())
+          b=json.loads(Path("evidence/physarum-r6/replay2.json").read_text())
+          expected=('JUXTAPOSE_PASSIVE','PHYSARUM_NETWORK_ONLY','JUXTAPOSE_PHYSARUM_HYBRID','MARKOV_PASSIVE','JUXTAPOSE_MARKOV_PASSIVE','COST_GEOMETRY_NO_MEMORY','STATIC_NUMERIC','RANDOM_FIXED')
+          assert a['protocol_blob']==b['protocol_blob']=='1ff4651d18a2ae99af41b57194f2f4263728613c'
+          assert a['original_SHA_source_manifest_blob']==b['original_SHA_source_manifest_blob']=='1c508d11e7689fc55b21a7e9633bab86852e94fb'
+          assert a['preregistered_seeds']==[2026111611,2026111612,2026111613,2026111614]
+          assert a['all_120_OOD_CNF_SHA_distinct_and_frozen']
+          assert a['production_C023']=='UNCHANGED'
+          for x,y in zip(a['reports'],b['reports']):
+              assert x['holdout_source_shas']==y['holdout_source_shas']
+              assert x['train_source_shas']==y['train_source_shas']
+              assert set(x['summary'])==set(expected)
+              assert len({v['verified_holdout_positive_cases'] for v in x['summary'].values()})==1
+              assert x['frozen_holdout_memory_unchanged']
+              for arm in expected:
+                  u,v=x['summary'][arm],y['summary'][arm]
+                  assert u['memory_sha256']==v['memory_sha256'],f'{x["seed"]} {arm} MEMORY_SHA_CHANGED'
+                  assert u['train_unique_extra_oracle_probes']==0
+                  for name in ('train_original_task_exact_probes_plus_extra','holdout_exact_probes',
+                               'train_plus_holdout_exact_probes','train_plus_holdout_pair_work'):
+                      assert u[name]==v[name],f'{x["seed"]} {arm} {name} NONDETERMINISTIC'
+          print('PHYSARUM_R6_SOURCE_SHA_EXACT_MATH_AND_MODEL_REPLAY_PASS')
+          PY
+      - name: Preserve all null/negative source receipts and Physarum conductivities
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physarum-jux-markov-r6-sourceproof-${{ github.run_id }}
+          path: evidence/physarum-r6/
+          retention-days: 90
+          if-no-files-found: warn
