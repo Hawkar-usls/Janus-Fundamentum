@@ -1,0 +1,31 @@
+name: JANUS JGPT R3 preregister novel CNF source only
+on:
+  push:
+    branches:
+      - research/time-sat-jgpt-r3-cold-first-hit-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_jgpt_r3_ood_sources.py
+      - .github/workflows/janus-jgpt-r3-source-only-freeze.yml
+permissions:
+  contents: read
+jobs:
+  source-only-manifest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Freeze all 66 original source SHAs before any ML run
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_r3_ood_sources.py
+          --out evidence/jgpt-r3-source-only/MANIFEST.json
+      - name: Preserve source-only hash list no labels
+        uses: actions/upload-artifact@v4
+        with:
+          name: jgpt-r3-source-only-${{ github.run_id }}
+          path: evidence/jgpt-r3-source-only/MANIFEST.json
+          retention-days: 90
