@@ -1,0 +1,82 @@
+name: JANUS JGPT R2 frozen new OOD exact and full cost, replay twice
+on:
+  push:
+    branches:
+      - research/time-sat-jgpt-r2-deterministic-ood-20261115
+    paths:
+      - .github/workflows/janus-jgpt-r2-novel-ood-determinism-cost.yml
+      - experiments/time_sat_004_external/janus_jgpt_r2_ood_full_cost.py
+      - experiments/time_sat_004_external/JGPT_R2_OOD_PROTOCOL_20261115.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-jgpt-r2-novel-sat-ood-safety
+  cancel-in-progress: false
+jobs:
+  frozen-ood-deterministic-cpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONHASHSEED: '0'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fixed CPU-only PyTorch; no remote model weights
+        run: python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu 'torch==2.5.1+cpu'
+      - name: Verify exact immutable preregistered novel OOD protocol Git blob
+        run: >-
+          test "$(git hash-object experiments/time_sat_004_external/JGPT_R2_OOD_PROTOCOL_20261115.json)"
+          = '5caab590cc019de5e73f307dcf4b3e42647148dd'
+      - name: New unseen synthetic sources, strict label budgets and trained R2 shadow weights
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_r2_ood_full_cost.py
+          --out evidence/jgpt-r2-ood/attempt1.json
+          --checkpoint-dir evidence/jgpt-r2-ood/checkpoints1
+      - name: Rerun same source SHA, same model, same CPU worker and compare checkpoint bytes
+        run: >-
+          python experiments/time_sat_004_external/janus_jgpt_r2_ood_full_cost.py
+          --out evidence/jgpt-r2-ood/attempt2.json
+          --checkpoint-dir evidence/jgpt-r2-ood/checkpoints2
+      - name: Fail closed on any reproducibility failure or holdout contamination
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('evidence/jgpt-r2-ood/attempt1.json').read_text())
+          b=json.loads(Path('evidence/jgpt-r2-ood/attempt2.json').read_text())
+          assert a['protocol_git_blob']==b['protocol_git_blob']=='5caab590cc019de5e73f307dcf4b3e42647148dd'
+          assert a['total_new_ood_sources']==b['total_new_ood_sources']==66
+          assert a['seeds_preregistered']==b['seeds_preregistered']==[2026111501,2026111502,2026111503]
+          assert a['R6']=='FROZEN_SCIENCE_GATE_NOT_PASSED' and a['production_C023']=='UNCHANGED'
+          for u,v in zip(a['reports'],b['reports']):
+              assert u['seed']==v['seed']
+              assert u['train_source_shas']==v['train_source_shas']
+              assert u['holdout_source_shas']==v['holdout_source_shas']
+              assert u['model_sha256']==v['model_sha256'],f"NONDETERMINISTIC_CHECKPOINT:{u['seed']} {u['model_sha256']} != {v['model_sha256']}"
+              assert u['amortized_cost_exact_probes_and_symbolic_pairs']==v['amortized_cost_exact_probes_and_symbolic_pairs']
+              assert u['charge_real_training_proof_labels']==90
+              assert u['charge_validation_audit_holdout_probes']==264
+              assert u['weights_train_only'] and u['holdout_labels_never_learned']
+              assert len({q['source_sha256'] for q in u['all_records']})==67
+              assert all(q['phase']=='FROZEN_SYNTHETIC_OOD' for q in u['all_records'][45:])
+              gains={k:val['new_verified_math_hits'] for k,val in u['amortized_cost_exact_probes_and_symbolic_pairs'].items()}
+              assert len(set(gains.values()))==1,"LOSS_OF_EXACT_COVERAGE"
+          print("JANUS_JGPT_R2_NEW_OOD_AND_BITWISE_CHECKPOINT_REPLAY_PASS")
+          PY
+      - name: Save all nulls, time/memory, SHA-bound check receipts and shadow weights
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janus-jgpt-r2-new-ood-cost-${{ github.run_id }}
+          path: evidence/jgpt-r2-ood/
+          retention-days: 90
+          if-no-files-found: warn
