@@ -216,7 +216,9 @@ def run_seed(seed,manifest):
         for index in range(TRAIN+HOLDOUT):
             phase="TRAIN" if index<TRAIN else "FROZEN_HOLDOUT"
             if phase=="TRAIN":
-                source=exact.source_case(index)
+                training_case=exact.source_case(index)
+                source={**training_case,
+                        "source_logical_sha256":training_case["original_source_logical_sha256"]}
                 # exact source_case() checks model against original clauses
             else:
                 slot=index-TRAIN
