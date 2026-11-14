@@ -31,3 +31,28 @@ The source test is 100% synthetic and same-admin; no external independent labora
 ## Safety
 
 Never treat a model prediction as a SAT proof. No automatic production weight promotion, PR merge, new network service, NAS activity, credit spending, mutation submit, or autonomous research approval. The official R6_FROZEN_SCIENCE_GATE_NOT_PASSED and C023 gates stay closed.
+
+
+## First verified training run (14 Nov 2026)
+
+[GitHub Actions 43645447435](https://github.com/Hawkar-usls/Janus-Fundamentum/actions/runs/43645447435): SUCCESS. CPU-only torch 2.5.1, 9,057 fresh-trained parameters, 90 AdamW updates / seed, 45 training and 22 heldout sources / seed.
+
+Holdout seed 20261114:
+- Neural: 109 exact pivot checks / 704 parent-pair units, 14 verified rank-positive source formulas
+- Old heuristic JUXTAPOSE: 113 / 700, 14
+- Static: 148 / 714, 14
+- Random: 144 / 664, 14
+- Neural heldout Brier = 0.0541295 and 5-bin ECE = 0.0126165
+
+Holdout seed 20261117:
+- Neural: 105 checks / 640 pair units, 14 rank-positive formulas
+- Old heuristic: 104 / 614, 14
+- Static: 135 / 627, 14
+- Random: 138 / 659, 14
+- Neural Brier = 0.0592217, ECE = 0.0489852
+
+The **neural model is not a proven improvement over old JUXTAPOSE**, and it does not dominate on pair-work either. Both calibrators selected temperature 1.0, so this run shows calibration *monitoring and selection* but not a numerical temperature change. Tiny synthetic holdouts are not independent external source families.
+
+Old trainer's exploratory episode learning used only some verified probes; this neural trainer obtains **all 9 exact labels for each of 45 training cycles**. That consumes 405 extra/explicit source-proof probes per seed, which must be included in any honest end-to-end learning-cost comparison. Reported 0.136–0.138 s neural optimizer and 0.022 s inference are not the complete cost of labeling/training/proof generation. The next source revision explicitly counts and checks this extra cost.
+
+Official status: TRAINED_SHADOW_WEIGHTS_ONLY; SCIENTIFIC_GAIN_NOT_PROVED; EXTERNAL_VALIDATION_OPEN; R6_FROZEN_SCIENCE_GATE_NOT_PASSED.
