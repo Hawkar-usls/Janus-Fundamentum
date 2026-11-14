@@ -1,0 +1,31 @@
+name: JANUS JUXTAPOSE R6 source-only 240 future original CNF hashes
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-r6-passive-prospective-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose_r6_sources.py
+      - .github/workflows/janus-juxtapose-r6-source-only.yml
+permissions:
+  contents: read
+jobs:
+  seal-future-sources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate SHA-only original SAT CNF manifest, no labels
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r6_sources.py
+          --out evidence/r6-source-only/manifest.json
+      - name: Save source-only manifest before evaluator code is committed
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS-JUXTAPOSE-R6-source-only-${{ github.run_id }}
+          path: evidence/r6-source-only/manifest.json
+          retention-days: 90
