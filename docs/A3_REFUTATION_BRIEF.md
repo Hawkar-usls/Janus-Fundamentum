@@ -223,7 +223,7 @@ Adjudication: (1) закрепить allegation/raw input до исправле�
 
 ## 8. Выполненный dry run ложного контрпримера
 
-**Предварительный exploratory negative control, выполненный до preregistration.** Он не входит в заявленные 1107 confirmatory cases и не используется для продвижения A3. Созданный отдельно в этой сессии проверяющий не импортирует JANUS, не использует q для вычисления optimum, rank identity или endpoint transitions. Он строит spans как явные XOR-замкнутые множества векторов.
+**Предварительный exploratory negative control, выполненный до preregistration.** Этот пилотный запуск не засчитывается как выполнение будущей кампании 1107 confirmatory inputs и не используется для продвижения A3. Сам pilot input остаётся в полном конечном наборе §5 и при проведении кампании должен проверяться заново с раскрытием предварительного exposure. Созданный отдельно в этой сессии проверяющий не импортирует JANUS, не использует q для вычисления optimum, rank identity или endpoint transitions. Он строит spans как явные XOR-замкнутые множества векторов.
 
 Вход: `GF(2)^2`, `U_1=span((1,0))`, `U_2=span((0,1))`, `a=(3,1)`, capped `b=(2,1)`. Намеренно ложное allegation: `OPT_full=2`, `OPT_capped=1`.
 
