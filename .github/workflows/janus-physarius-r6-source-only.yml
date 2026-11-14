@@ -1,0 +1,31 @@
+name: JANUS Physarius R6 original SAT source SHA only freeze
+on:
+  push:
+    branches:
+      - research/time-sat-physarius5d-vs-juxtapose-r6-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_physarius_r6_sources.py
+      - .github/workflows/janus-physarius-r6-source-only.yml
+permissions:
+  contents: read
+jobs:
+  freeze-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate 120 untouched original CNF source SHA, NO experimental scores
+        run: >-
+          python experiments/time_sat_004_external/janus_physarius_r6_sources.py
+          --out evidence/physarius-r6-sources/SOURCE_ONLY.json
+      - name: Retain source-only preregistered manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: PHYSARIUS-R6-SOURCE-ONLY-${{ github.run_id }}
+          path: evidence/physarius-r6-sources/SOURCE_ONLY.json
+          retention-days: 90
