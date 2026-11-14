@@ -36,6 +36,30 @@ relation. Thus the derived equation is independent **relative to that
 initial explicit parity basis**. Its novelty is only relative to what the
 source-XOR extractor found, *not relative to what ordinary resolution can do*.
 
+### Classical UP + XOR falsifier of novelty for the tiny positive example
+
+A standard unit-propagation preprocessor sees the original unit clause `-4 0`,
+sets `w = 0`, removes the guard literal from all four remaining clauses,
+then recognizes their complete XOR sign-mask family. **This already extracts
+`x XOR y XOR z = 1` without the JANUS bounded-resolution discovery rule.**
+Thus the initial `+1` rank is only relative to the *unpreprocessed*
+explicit-source XOR basis. Compared with UP + full-mask XOR extraction,
+the illustrative JANUS rank advantage is **0**.
+
+An independent-code, same-administrator (NOT external-lab) UP/XOR implementation
+is provided at `time_sat_004d9b_up_cleanroom_baseline.py`. Its output is a
+required **negative novelty control**, not a success story for scientific
+novelty:
+
+    python experiments/time_sat_004_external/time_sat_004d9b_up_cleanroom_baseline.py --out /tmp/janus-004d9b-UP-baseline.json
+
+A future *novelty* proposal must compare any new source-derived XOR increment
+against **unit propagation + sign-mask extraction, inprocessing-based XOR
+recovery, and algebraic elimination**, all within equal resource budgets. A
+rank increase over an intentionally weaker original-only extractor does NOT
+suffice. Compare to prior work including Nawrocki et al., `XOR Local Search`
+(SAT 2021) and CryptoMiniSat's existing XOR recovery.
+
 ### Required negative controls
 
 - An already explicit 3-variable XOR: no incremental coefficient rank.
