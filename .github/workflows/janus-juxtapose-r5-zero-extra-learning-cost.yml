@@ -1,0 +1,81 @@
+name: JANUS JUXTAPOSE R5 passive 0-extra-label cost vs baseline on 120 sealed originals
+on:
+  push:
+    branches:
+      - research/time-sat-juxtapose-r5-zero-extra-labels-20261115
+    paths:
+      - experiments/time_sat_004_external/janus_juxtapose_r5_passive_benchmark.py
+      - experiments/time_sat_004_external/JUXTAPOSE_R5_PASSIVE_LEARNING_PROTOCOL_20261115.json
+      - experiments/time_sat_004_external/JUXTAPOSE_R5_NEW_ORIGINAL_SHA_MANIFEST_20261115.json
+      - .github/workflows/janus-juxtapose-r5-zero-extra-learning-cost.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: janus-juxtapose-r5-passive-synthetic
+  cancel-in-progress: false
+jobs:
+  first-proof-zero-extra-labels:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify preregistration and source-only original CNF SHA immutable
+        run: |
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_R5_PASSIVE_LEARNING_PROTOCOL_20261115.json)" = 'ead8ea24e34c76315c2eaaf03af88b80bc8554ec'
+          test "$(git hash-object experiments/time_sat_004_external/JUXTAPOSE_R5_NEW_ORIGINAL_SHA_MANIFEST_20261115.json)" = 'ced5af3ff248b3b24db3dead72ee4aa947d4a750'
+      - name: Compare learned passive and active/zero-memory controls, 4x45 train + 4x30 OOD
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r5_passive_benchmark.py
+          --out evidence/juxtapose-r5/run1.json
+          --memory-dir evidence/juxtapose-r5/memory1
+      - name: Repeat entire experiment on same host and commit
+        run: >-
+          python experiments/time_sat_004_external/janus_juxtapose_r5_passive_benchmark.py
+          --out evidence/juxtapose-r5/run2.json
+          --memory-dir evidence/juxtapose-r5/memory2
+      - name: Reject any extra passive label, lost proof hit or SHA drift
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("evidence/juxtapose-r5/run1.json").read_text())
+          b=json.loads(Path("evidence/juxtapose-r5/run2.json").read_text())
+          assert a['protocol_blob']==b['protocol_blob']=='ead8ea24e34c76315c2eaaf03af88b80bc8554ec'
+          assert a['original_SHA_source_manifest_blob']==b['original_SHA_source_manifest_blob']=='ced5af3ff248b3b24db3dead72ee4aa947d4a750'
+          assert a['preregistered_seeds']==b['preregistered_seeds']==[2026111591,2026111592,2026111593,2026111594]
+          assert a['all_120_OOD_CNF_SHA_distinct_and_frozen']
+          assert a['no_extra_source_probes_for_passive_training']
+          assert a['production_C023']=='UNCHANGED' and a['R6']=='R6_FROZEN_SCIENCE_GATE_NOT_PASSED'
+          for x,y in zip(a['reports'],b['reports']):
+              assert x['holdout_source_shas']==y['holdout_source_shas']
+              assert x['train_source_shas']==y['train_source_shas']
+              for arm,z in x['summary'].items():
+                  w=y['summary'][arm]
+                  assert z['memory_sha256']==w['memory_sha256']
+                  for key in ('train_original_task_exact_probes_plus_extra',
+                              'train_unique_extra_oracle_probes','holdout_exact_probes',
+                              'train_plus_holdout_exact_probes',
+                              'train_plus_holdout_pair_work','verified_holdout_positive_cases'):
+                      assert z[key]==w[key],f'COUNTS_CHANGED {x["seed"]} {arm} {key}'
+              assert x['summary']['PASSIVE_COST_AWARE']['train_unique_extra_oracle_probes']==0
+              assert x['summary']['PASSIVE_JUXTAPOSE_HISTORY']['train_unique_extra_oracle_probes']==0
+              assert len({z['verified_holdout_positive_cases'] for z in x['summary'].values()})==1
+              assert x['frozen_holdout_memory_unchanged']
+          print("JUXTAPOSE_R5_PASSIVE_COST_SOURCE_SHA_REPEATABILITY_PASS")
+          PY
+      - name: Retain raw source SHA receipts, all failed/null probes and memory checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JANUS-JUXTAPOSE-R5-120-FROZEN-CNFS-${{ github.run_id }}
+          path: evidence/juxtapose-r5/
+          if-no-files-found: warn
+          retention-days: 90
