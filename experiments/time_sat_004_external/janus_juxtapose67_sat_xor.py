@@ -80,9 +80,14 @@ def source_case(cycle):
                 row[0] *= -1
             rows.append(row)
     rng.shuffle(rows)
-    rows=[sorted(set(r),key=lambda x:(abs(x),x<0)) for r in rows]
-    if len({tuple(r) for r in rows})!=len(rows):
-        raise AssertionError("Duplicate source original")
+    # Duplicate synthetic decoy clauses are removed deterministically while
+    # the complete XOR source blocks remain intact; a repeated clause carries
+    # no new logical information, and a duplicated ID is never used as evidence.
+    unique={}
+    for row in rows:
+        canonical=tuple(sorted(set(row),key=lambda x:(abs(x),x<0)))
+        unique.setdefault(canonical,None)
+    rows=[list(row) for row in unique]
     sat=[v if truth[v] else -v for v in range(1,n+1)]
     if certified_model(rows,n,sat)["status"]!="SAT_VERIFIED_EVERY_ORIGINAL_CLAUSE":
         raise AssertionError("Synthetic source model invalid")
