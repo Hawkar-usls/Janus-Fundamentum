@@ -1,0 +1,477 @@
+name: JANUS real Rowan receipt through Lapis into Fundamentum
+on:
+  pull_request:
+    paths:
+      - 'research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json'
+      - '.github/workflows/rowan-real-lapis-fundamentum-e2e.yml'
+      - 'research/exactone_parity_preprocessor.py'
+      - 'research/exactone_forest_dp.py'
+      - 'research/exactone_bounded_cycle_cutset.py'
+      - 'research/exactone_bounded_width_dp.py'
+      - 'research/exactone_affine_nullity.py'
+      - 'research/exactone_component_factorization.py'
+      - 'docs/EXACTONE_HIGH_WIDTH_HIGH_NULLITY_COMPONENT_COMPOSITION_AIFC_20261028.md'
+      - 'docs/EXACTONE_HIGH_WIDTH_AFFINE_NULLITY_20261028.md'
+      - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
+      - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
+      - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authentic-collected-receipt-to-lapis:
+    name: Real collected Rowan BBC1 -> genuine Lapis translator -> Fundamentum verifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout Fundamentum exact-one research branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact JANUS Lapis translator from Draft PR 32
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-lapis
+          ref: 72daf0b4dce0467afad4f5f3ceaa813503923b30
+          path: lapis
+          persist-credentials: false
+      - name: Checkout exact Fundamentum receiver from Draft PR 570
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/Janus-Fundamentum
+          ref: ed297fee1a60d1c97232411990921b707633b809
+          path: receiver
+          persist-credentials: false
+      - name: Checkout pinned genuine AIFC strict canonicalization implementation
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/AIFC
+          ref: 86bf957815911658edad330d5948e1bea2ea59b1
+          path: aifc
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm real Rowan collection snapshot identity and numeric fidelity
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path("research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json")
+          d=json.loads(p.read_text(encoding="utf-8"))
+          canonical=json.dumps(d,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+          assert hashlib.sha256(canonical).hexdigest()=="ad9f51e407ce272bde0179dcddc5e09aaf18327f19296b281a3423f34cbe22c3"
+          assert d["schema_id"]=="janus.rowan.bbc1.stratified_8_mutant_pilot.v1"
+          assert d["source_commit"]=="cc6b0b56553e694dbf27dc84c6b37a8686e64b85"
+          assert d["all_eight_ready_for_descriptive_association"] is True
+          assert len(d["pilot_cases"])==8
+          assert all(x["provider_state"]=="PROVIDER_RESULT_RETURNED" for x in d["pilot_cases"])
+          assert d["topa_scientific_review"]=="OPEN"
+          assert d["protein_stability_or_fitness_inferred"] is False
+          print("ROWAN_ORIGINAL_COLLECTOR_ARTIFACT=EXACT_SHA256_MATCH")
+          print("ROWAN_BBC1_PROVIDER_RESULTS=8/8")
+          print("ROWAN_NEW_COMPUTATION=NO")
+          PY
+      - name: Run actual Lapis converter on Rowan data twice (cache test)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/janus-real-rowan-lapis
+          SOURCE="research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json"
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input "$SOURCE" --outdir /tmp/janus-real-rowan-lapis --language ru \
+            | tee /tmp/lapis-first.log
+          grep 'TRANSLATED_NEW' /tmp/lapis-first.log
+          python lapis/tools/rowan_fundamentum_translate.py \
+            --input "$SOURCE" --outdir /tmp/janus-real-rowan-lapis --language ru \
+            | tee /tmp/lapis-second.log
+          grep 'CACHE_HIT_SAME_CONTENT' /tmp/lapis-second.log
+      - name: Independently verify actual Lapis output with Fundamentum receiver
+        run: |
+          set -euo pipefail
+          BUNDLE="$(find /tmp/janus-real-rowan-lapis -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$BUNDLE"
+          python receiver/tools/verify_lapis_rowan_candidate.py \
+            --bundle "$BUNDLE" \
+            --source-receipt research/receipts/rowan_bbc1_real_collected_8of8_40593272360_attempt2.json \
+            | tee /tmp/rowan-lapis-verdict.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=next(Path("/tmp/janus-real-rowan-lapis").iterdir())
+          c=json.loads((root/"candidate.json").read_text())
+          ir=json.loads((root/"algorithm_ir.json").read_text())
+          v=json.loads(Path("/tmp/rowan-lapis-verdict.json").read_text())
+          assert v["status"]=="STRUCTURALLY_VALID_UNAUTHENTICATED",v
+          assert c["facts"]["source_class"]=="ROWAN_BBC1_STRATIFIED"
+          assert c["facts"]["ready_count"]==8
+          assert c["facts"]["wildtype"]["ptm"]==0.927
+          assert c["facts"]["wildtype"]["avg_lddt"]==0.963
+          assert c["facts"]["samples"][0]["mutation"]=="G53A"
+          assert c["facts"]["samples"][0]["ptm"]==0.918
+          assert c["for_fundamentum"]["proof_or_exact_sat_witness"] is False
+          assert c["for_fundamentum"]["P_VS_NP"]=="OPEN"
+          assert ir["algorithm"]["mode"]=="explicit_contract"
+          assert all(step["operator"]=="ANNOTATE" for step in ir["algorithm"]["steps"])
+          print("REAL_ROWAN_LAPIS_FUNDAMENTUM=PASS")
+          print("SAT_PROOF_FROM_ROWAN=NONE")
+          PY
+      - name: Re-run independent Exact-One proof-carrying reduction
+        run: |
+          python research/exactone_parity_preprocessor.py --self-test > /tmp/exactone-gf2-test.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/exactone-gf2-test.json").read_text())
+          assert r["status"]=="PASS" and r["independent_reference_cases"]==327
+          assert r["p_vs_np"]=="OPEN"
+          print("FUNDAMENTUM_EXACTONE_CONTROL=327_OF_327_PASS")
+          PY
+      - name: Prove forest residual, carry math certificate through actual Lapis IR
+        run: |
+          set -euo pipefail
+          python research/exactone_forest_dp.py --self-test > /tmp/exactone-forest-suite.json
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[3,4,5]]}' > /tmp/exactone-forest-input.json
+          python research/exactone_forest_dp.py \
+            --input /tmp/exactone-forest-input.json \
+            --output /tmp/exactone-forest-certified.json
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-forest-certified.json \
+            -o /tmp/exactone-forest-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_forest_dp import verify
+          case=json.loads(Path("/tmp/exactone-forest-input.json").read_text())
+          math=json.loads(Path("/tmp/exactone-forest-certified.json").read_text())
+          transport=json.loads(Path("/tmp/exactone-forest-lapis-ir.json").read_text())
+          suite=json.loads(Path("/tmp/exactone-forest-suite.json").read_text())
+          assert math["status"]=="SAT_FOREST",math["status"]
+          assert verify(case,math),"INDEPENDENT_FOREST_CERT_FAIL"
+          assert transport["algorithm"]["mode"]=="heuristic_translation"
+          assert transport["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          assert all(s["operator"]=="ANNOTATE" for s in transport["algorithm"]["steps"])
+          assert suite["status"]=="PASS" and suite["tampered_message"]=="REJECTED"
+          print("LAPIS_FORMAL_CERTIFICATE_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_FOREST_VERIFY=PASS")
+          print("EXACTONE_FOREST_TEST_CASES="+str(suite["cases"]))
+          PY
+      - name: Carry certified two-cycle Exact-One solution through actual Lapis IR
+        run: |
+          set -euo pipefail
+          printf '%s\n' '{"n":8,"clauses":[[1,2,3],[2,3,4],[5,6,7],[6,7,8]]}' > /tmp/exactone-cutset-case.json
+          python research/exactone_bounded_cycle_cutset.py \
+            --input /tmp/exactone-cutset-case.json \
+            --output /tmp/exactone-cutset-certified.json
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-cutset-certified.json \
+            -o /tmp/exactone-cutset-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_cycle_cutset import verify
+          case=json.loads(Path("/tmp/exactone-cutset-case.json").read_text())
+          source=json.loads(Path("/tmp/exactone-cutset-certified.json").read_text())
+          ir=json.loads(Path("/tmp/exactone-cutset-lapis-ir.json").read_text())
+          assert source["status"]=="SAT_CUTSET"
+          assert len(source["cycle_cutset_variables"])==2
+          assert verify(case,source)
+          assert ir["algorithm"]["mode"]=="heuristic_translation"
+          assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+          print("LAPIS_CYCLE_CUTSET_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_CYCLE_CUTSET_VERIFIER=PASS")
+          print("CYCLIC_CUTSET_BOUND=2")
+          PY
+      - name: Verify 80+ incidence cycles at width two and translate the actual certificate through Lapis
+        run: |
+          set -euo pipefail
+          python research/exactone_bounded_width_dp.py --self-test > /tmp/exactone-width-suite.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_width_dp import chain_family,solve,verify
+          case=chain_family(83)
+          result=solve(case,width_cap=2)
+          assert result["status"]=="SAT" and result["maximum_realized_width"]==2
+          assert verify(case,result)
+          Path("/tmp/exactone-width-input.json").write_text(json.dumps(case,sort_keys=True)+"\n")
+          Path("/tmp/exactone-width-certificate.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
+          print("EXACTONE_83_VARIABLE_WIDTH2_CERTIFIED=PASS")
+          PY
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-width-certificate.json \
+            -o /tmp/exactone-width-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_bounded_width_dp import verify
+          case=json.loads(Path("/tmp/exactone-width-input.json").read_text())
+          cert=json.loads(Path("/tmp/exactone-width-certificate.json").read_text())
+          ir=json.loads(Path("/tmp/exactone-width-lapis-ir.json").read_text())
+          suite=json.loads(Path("/tmp/exactone-width-suite.json").read_text())
+          assert verify(case,cert),"ORIGINAL_EXACTONE_CERTIFICATE_INVALID"
+          assert suite["status"]=="PASS"
+          assert suite["small_reference_cases"]==427
+          assert suite["large_sat_incidence_4cycles_lower_bound"]>=80
+          assert suite["tampered_rehashed_projection"]=="REJECTED"
+          assert ir["algorithm"]["mode"]=="heuristic_translation"
+          assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+          assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          print("LAPIS_UNBOUNDED_CYCLES_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_BOUNDED_WIDTH_CERTIFICATE_VERIFY=PASS")
+          PY
+      - name: High-width clique low-XOR-nullity SAT and UNSAT proofs, real Lapis annotated IR
+        run: |
+          set -euo pipefail
+          python research/exactone_affine_nullity.py --self-test > /tmp/exactone-affine-suite.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_affine_nullity import solve,verify,full_pair_fan
+          for name,unsat,expected in (
+              ("sat",False,"SAT"),("unsat",True,"UNSAT_EXACTONE")):
+              case=full_pair_fan(65,unsat=unsat)
+              answer=solve(case,max_free_dimension=4)
+              assert verify(case,answer)
+              assert answer["status"]==expected
+              assert answer["nullity"]==(0 if unsat else 1)
+              Path("/tmp/exactone-affine-"+name+"-input.json").write_text(
+                  json.dumps(case,sort_keys=True)+"\n")
+              Path("/tmp/exactone-affine-"+name+"-proof.json").write_text(
+                  json.dumps(answer,sort_keys=True,indent=2)+"\n")
+          print("AFFINE_HIGH_WIDTH_SAT_AND_UNSAT_ORIGINAL_CERTIFICATES=VERIFIED")
+          PY
+          for name in sat unsat; do
+            python lapis/tools/lapis_converter.py json-to-algorithm \
+              "/tmp/exactone-affine-"$name"-proof.json" \
+              -o "/tmp/exactone-affine-"$name"-lapis-ir.json"
+          done
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_affine_nullity import verify
+          suite=json.loads(Path("/tmp/exactone-affine-suite.json").read_text())
+          assert suite["status"]=="PASS"
+          assert suite["independent_small_reference_cases"]==507
+          assert suite["high_width_proved_treewidth_lower_bound"]==65
+          assert suite["high_width_sat"]["status"]=="SAT"
+          assert suite["high_width_unsat"]["status"]=="UNSAT_EXACTONE"
+          for name in ("sat","unsat"):
+              case=json.loads(Path("/tmp/exactone-affine-"+name+"-input.json").read_text())
+              proof=json.loads(Path("/tmp/exactone-affine-"+name+"-proof.json").read_text())
+              ir=json.loads(Path("/tmp/exactone-affine-"+name+"-lapis-ir.json").read_text())
+              assert verify(case,proof),name
+              assert ir["algorithm"]["mode"]=="heuristic_translation"
+              assert all(s["operator"]=="ANNOTATE" for s in ir["algorithm"]["steps"])
+              assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          print("LAPIS_HIGH_WIDTH_AFFINE_CERTIFICATE_ANNOTATION=PASS")
+          print("FUNDAMENTUM_ORIGINAL_SAT_UNSAT_PROOF_VERIFICATION=PASS")
+          print("ROWAN_SCIENTIFIC_DATA_USED_AS_SAT_ORACLE=NO")
+          PY
+      - name: Run high-width high-nullity component product and AIFC canonical provenance
+        run: |
+          set -euo pipefail
+          python research/exactone_component_factorization.py --self-test > /tmp/exactone-component-suite.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          from exactone_component_factorization import high_width_high_nullity,solve,verify
+          for name,unsat,expected in (
+              ("sat",False,"SAT_COMPONENTS"),("unsat",True,"UNSAT_COMPONENT")):
+              case=high_width_high_nullity(16,16,unsat=unsat)
+              proof=solve(case,local_nullity_cap=3)
+              assert proof["status"]==expected and verify(case,proof)
+              Path("/tmp/exactone-component-"+name+"-input.json").write_text(json.dumps(case,sort_keys=True)+"\n")
+              Path("/tmp/exactone-component-"+name+"-proof.json").write_text(json.dumps(proof,sort_keys=True,indent=2)+"\n")
+          print("EXACTONE_HIGH_HIGH_COMPONENT_CERTIFICATES=VERIFIED")
+          PY
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-component-sat-proof.json \
+            -o /tmp/exactone-component-sat-lapis-ir.json
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/exactone-component-unsat-proof.json \
+            -o /tmp/exactone-component-unsat-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"research")
+          sys.path.insert(0,"aifc/reference/verifier")
+          from exactone_component_factorization import verify
+          from canonical import canonical_json_bytes,loads_strict,domain_hash,CanonicalizationError
+          suite=json.loads(Path("/tmp/exactone-component-suite.json").read_text())
+          assert suite["status"]=="PASS" and suite["small_independent_reference_cases"]==306
+          assert suite["high_width_high_nullity_family"]["global_xor_nullity"]==16
+          assert suite["high_width_high_nullity_family"]["primal_treewidth_lower_bound"]==16
+          results={}
+          for name in ("sat","unsat"):
+              case=json.loads(Path("/tmp/exactone-component-"+name+"-input.json").read_text())
+              proof_path=Path("/tmp/exactone-component-"+name+"-proof.json")
+              strict=loads_strict(proof_path.read_text(encoding="utf-8"))
+              assert verify(case,strict),"MATH_CERT_REJECTED_"+name
+              ir=json.loads(Path("/tmp/exactone-component-"+name+"-lapis-ir.json").read_text())
+              assert ir["algorithm"]["mode"]=="heuristic_translation"
+              assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+              assert all(step["operator"]=="ANNOTATE" for step in ir["algorithm"]["steps"])
+              hv=domain_hash("JANUS:EXACTONE:COMPONENT_PRODUCT:v1",strict)
+              assert hv==domain_hash("JANUS:EXACTONE:COMPONENT_PRODUCT:v1",loads_strict(
+                  canonical_json_bytes(strict).decode("utf-8")))
+              results[name]={"domain_sha256":hv,"aifc_canonical":"PASS",
+                             "fundamentum_exact_math_proof":"PASS",
+                             "lapis_ir_algorithm_sha256":ir["algorithm_sha256"],
+                             "lapis_ir_authoritative_for_math":False}
+          for bad in ('{"x":1,"x":2}','{"x":1.5}','{"x":"e\\u0301"}'):
+              try: loads_strict(bad)
+              except (CanonicalizationError, ValueError): pass
+              else: raise AssertionError("AIFC_FAIL_OPEN_CANONICALIZATION")
+          Path("/tmp/exactone-aifc-proof-domain-manifest.json").write_text(
+              json.dumps({
+                  "schema":"janus.aifc_exactone_cross_repo_provenance.v1",
+                  "aifc_commit":"86bf957815911658edad330d5948e1bea2ea59b1",
+                  "aifc_reference_module":"reference/verifier/canonical.py",
+                  "domain":"JANUS:EXACTONE:COMPONENT_PRODUCT:v1",
+                  "aifc_methodology":"STRICT_CANONICAL_BYTES_AND_DOMAIN_HASH_ONLY",
+                  "aifc_sat_proof_authority":False,
+                  "aifc_cryptographic_external_witness_quorum":False,
+                  "results":results,
+                  "rowan_new_provider_jobs":0,
+                  "p_vs_np":"OPEN"
+              },indent=2,sort_keys=True)+"\n")
+          print("AIFC_REAL_STRICT_CANONICALIZATION=PASS")
+          print("AIFC_NEGATIVE_DUPLICATES_FLOATS_NFC=PASS")
+          print("LAPIS_REAL_COMPONENT_CERTIFICATE_TRANSPORT=PASS_ANNOTATION_ONLY")
+          print("FUNDAMENTUM_ORIGINAL_COMPONENT_CERT_VERIFY=PASS")
+          PY
+      - name: Emit cross-domain provenance without conflating chemistry and complexity
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=next(pathlib.Path("/tmp/janus-real-rowan-lapis").iterdir())
+          c=json.loads((root/"candidate.json").read_text())
+          manifest=json.loads((root/"manifest.json").read_text())
+          source_hash=manifest["source_receipt_canonical_sha256"]
+          verifier=json.loads(pathlib.Path("/tmp/rowan-lapis-verdict.json").read_text())
+          math=json.loads(pathlib.Path("/tmp/exactone-gf2-test.json").read_text())
+          forest=json.loads(pathlib.Path("/tmp/exactone-forest-suite.json").read_text())
+          forest_cert=json.loads(pathlib.Path("/tmp/exactone-forest-certified.json").read_text())
+          forest_lapis=json.loads(pathlib.Path("/tmp/exactone-forest-lapis-ir.json").read_text())
+          cutset=json.loads(pathlib.Path("/tmp/exactone-cutset-certified.json").read_text())
+          cutset_lapis=json.loads(pathlib.Path("/tmp/exactone-cutset-lapis-ir.json").read_text())
+          width_suite=json.loads(pathlib.Path("/tmp/exactone-width-suite.json").read_text())
+          width_cert=json.loads(pathlib.Path("/tmp/exactone-width-certificate.json").read_text())
+          width_lapis=json.loads(pathlib.Path("/tmp/exactone-width-lapis-ir.json").read_text())
+          affine_suite=json.loads(pathlib.Path("/tmp/exactone-affine-suite.json").read_text())
+          affine_sat=json.loads(pathlib.Path("/tmp/exactone-affine-sat-proof.json").read_text())
+          affine_unsat=json.loads(pathlib.Path("/tmp/exactone-affine-unsat-proof.json").read_text())
+          affine_sat_lapis=json.loads(pathlib.Path("/tmp/exactone-affine-sat-lapis-ir.json").read_text())
+          affine_unsat_lapis=json.loads(pathlib.Path("/tmp/exactone-affine-unsat-lapis-ir.json").read_text())
+          components=json.loads(pathlib.Path("/tmp/exactone-component-suite.json").read_text())
+          aifc_provenance=json.loads(pathlib.Path("/tmp/exactone-aifc-proof-domain-manifest.json").read_text())
+          out={
+              "schema":"janus.rowan_lapis_fundamentum_real_receipt_e2e.v1",
+              "origin":{
+                  "repo":"Hawkar-usls/Janus",
+                  "run_id":40593272360,
+                  "run_attempt":2,
+                  "source_artifact_id":12780396162,
+                  "source_canonical_sha256":source_hash,
+                  "provenance_scope":"ARCHIVED_GITHUB_ACTIONS_PROVIDER_READ_NOT_NEW_ROWAN_COMPUTATION"
+              },
+              "lapis":{
+                  "commit":"72daf0b4dce0467afad4f5f3ceaa813503923b30",
+                  "candidate_sha256":manifest["candidate_sha256"],
+                  "algorithm_ir_sha256":manifest["algorithm_ir_sha256"],
+                  "converted_original":True,
+                  "cache_repeat_verified":True,
+                  "bbc1_ready_count":c["facts"]["ready_count"]
+              },
+              "fundamentum":{
+                  "receiving_commit":"ed297fee1a60d1c97232411990921b707633b809",
+                  "receiver_status":verifier["status"],
+                  "independent_provider_authentication":False,
+                  "exactone_cases_checked":math["independent_reference_cases"],
+                  "exactone_preprocessor_status":math["status"],
+                  "sat_result_from_rowan":False,
+                  "forest_dp_test_cases":forest["cases"],
+                  "forest_dp_test_status":forest["status"],
+                  "forest_certificate_status":forest_cert["status"],
+                  "forest_certificate_verified_independently":True,
+                  "lapis_math_certificate_transport_algorithm_sha256":forest_lapis["algorithm_sha256"],
+                  "lapis_math_carrier_proof_authority":False,
+                  "cycle_cutset_result":cutset["status"],
+                  "cycle_cutset_size":len(cutset["cycle_cutset_variables"]),
+                  "cycle_cutset_verified_independently":True,
+                  "lapis_cutset_algorithm_sha256":cutset_lapis["algorithm_sha256"],
+                  "bounded_width_test_cases":width_suite["small_reference_cases"],
+                  "bounded_width_max_realized":width_cert["maximum_realized_width"],
+                  "bounded_width_83_variable_status":width_cert["status"],
+                  "bounded_width_incidence_cycles_lower_bound":width_suite["large_sat_incidence_4cycles_lower_bound"],
+                  "bounded_width_certificate_verified_independently":True,
+                  "lapis_bounded_width_algorithm_sha256":width_lapis["algorithm_sha256"],
+                  "lapis_bounded_width_proof_authority":False,
+                  "affine_kernel_small_test_cases":affine_suite["independent_small_reference_cases"],
+                  "affine_kernel_clique_vertices":affine_suite["high_width_primal_clique_vertices"],
+                  "affine_kernel_treewidth_lower_bound":affine_suite["high_width_proved_treewidth_lower_bound"],
+                  "affine_kernel_sat":affine_sat["status"],
+                  "affine_kernel_unsat":affine_unsat["status"],
+                  "affine_kernel_sat_nullity":affine_sat["nullity"],
+                  "affine_kernel_unsat_nullity":affine_unsat["nullity"],
+                  "affine_kernel_orig_certificates_independently_verified":True,
+                  "lapis_affine_sat_algorithm_sha256":affine_sat_lapis["algorithm_sha256"],
+                  "lapis_affine_unsat_algorithm_sha256":affine_unsat_lapis["algorithm_sha256"],
+                  "lapis_affine_ir_proof_authority":False,
+                  "component_product_small_reference_cases":components["small_independent_reference_cases"],
+                  "component_product_high_width":components["high_width_high_nullity_family"]["primal_treewidth_lower_bound"],
+                  "component_product_global_nullity":components["high_width_high_nullity_family"]["global_xor_nullity"],
+                  "component_product_original_certificates_verified":True,
+                  "aifc_pinned_commit":aifc_provenance["aifc_commit"],
+                  "aifc_actual_canonical_module_executed":True,
+                  "aifc_sat_proof_authority":False,
+                  "aifc_component_sat_domain_sha256":aifc_provenance["results"]["sat"]["domain_sha256"],
+                  "aifc_component_unsat_domain_sha256":aifc_provenance["results"]["unsat"]["domain_sha256"]
+              },
+              "new_rowan_jobs":0,"credits_spent_by_this_ci":0,
+              "p_vs_np":"OPEN",
+              "verdict":"REAL_ARCHIVED_ROWAN_TO_LAPIS_TO_FUNDAMENTUM_PASS_NOT_PNP_PROOF"
+          }
+          pathlib.Path("/tmp/janus-real-rowan-lapis/e2e-verdict.json").write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: real-rowan-lapis-fundamentum-e2e
+          path: |
+            /tmp/janus-real-rowan-lapis/e2e-verdict.json
+            /tmp/janus-real-rowan-lapis/*/candidate.json
+            /tmp/janus-real-rowan-lapis/*/algorithm_ir.json
+            /tmp/janus-real-rowan-lapis/*/brief.txt
+            /tmp/janus-real-rowan-lapis/*/manifest.json
+            /tmp/rowan-lapis-verdict.json
+            /tmp/exactone-gf2-test.json
+            /tmp/exactone-forest-suite.json
+            /tmp/exactone-forest-certified.json
+            /tmp/exactone-forest-lapis-ir.json
+            /tmp/exactone-cutset-certified.json
+            /tmp/exactone-cutset-lapis-ir.json
+            /tmp/exactone-width-suite.json
+            /tmp/exactone-width-certificate.json
+            /tmp/exactone-width-lapis-ir.json
+            /tmp/exactone-affine-suite.json
+            /tmp/exactone-affine-sat-proof.json
+            /tmp/exactone-affine-unsat-proof.json
+            /tmp/exactone-affine-sat-lapis-ir.json
+            /tmp/exactone-affine-unsat-lapis-ir.json
+            /tmp/exactone-component-suite.json
+            /tmp/exactone-component-sat-proof.json
+            /tmp/exactone-component-unsat-proof.json
+            /tmp/exactone-component-sat-lapis-ir.json
+            /tmp/exactone-component-unsat-lapis-ir.json
+            /tmp/exactone-aifc-proof-domain-manifest.json
+          retention-days: 21

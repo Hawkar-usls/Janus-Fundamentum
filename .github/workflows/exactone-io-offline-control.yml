@@ -1,0 +1,135 @@
+name: JANUS I0 × Fundamentum offline paired proof-control
+on:
+  pull_request:
+    paths:
+      - 'research/exactone_i0_paired_control_audit.py'
+      - 'docs/EXACTONE_IO_MATCHED_CONTROL_INTEGRATION_20261028.md'
+      - '.github/workflows/exactone-io-offline-control.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Fundamentum research code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout public I0 source at exact verified commit
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-io-public
+          ref: 41b1c9b6af6629a551d2814aa69c5dfcac042620
+          path: janus-io-public
+          persist-credentials: false
+      - name: Checkout exact AIFC canonicalizer (no mining)
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/AIFC
+          ref: 86bf957815911658edad330d5948e1bea2ea59b1
+          path: aifc
+          persist-credentials: false
+      - name: Checkout genuine Lapis converter
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkar-usls/janus-lapis
+          ref: 72daf0b4dce0467afad4f5f3ceaa813503923b30
+          path: lapis
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify I0 source identities, safety scope, and genuine Butterfly offline test
+        run: |
+          set -euo pipefail
+          cd janus-io-public
+          test "$(git rev-parse HEAD)" = "41b1c9b6af6629a551d2814aa69c5dfcac042620"
+          test "$(git hash-object scripts/butterfly_director.py)" = "697ef1b46d6253f034e3c7b33783836e99c96052"
+          test "$(git hash-object docs/structured-traversal-and-random-control.md)" = "5d4cc973e68f26a956e6de5be402621edc177be7"
+          python scripts/butterfly_director.py --self-test
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("PROJECT_STATUS.json").read_text())
+          assert d["current_public_result"]["id"]=="A18.42"
+          assert "wall-energy savings" in [x.lower() for x in d["not_established"]]
+          assert "SHA-256 predictability or weakness" in d["not_established"]
+          assert d["strict_results"]["a18_43_wall_energy_thermal"]["status"]=="FAIL_CLOSED_REQUIRED_LIVE_TELEMETRY_ABSENT"
+          print("PUBLIC_I0_NO_ENERGY_OR_CRYPTO_PROOF_PROMOTION=PASS")
+          PY
+      - name: Paired original-constraint proof comparison on immutable synthetic cases
+        run: |
+          python research/exactone_i0_paired_control_audit.py --self-test \
+            --output /tmp/janus-i0-exactone-paired-report.json > /tmp/janus-i0-exactone-output.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/janus-i0-exactone-paired-report.json").read_text())
+          assert d["self_test"]=="PASS" and d["rerun_tampering_guard"]=="REJECTED"
+          assert d["trial_count"]>=90
+          assert all(d["arms"][a]["attempted"]==d["trial_count"] for a in d["arms"])
+          assert all(d["arms"][a]["independently_checked"]==d["trial_count"] for a in d["arms"])
+          assert not d["identical_computation_budget"] and not d["speedup_inferred"]
+          assert not d["network_mining_executed"] and not d["private_io_raw_logs_collected"]
+          assert not d["universal_polynomial_sat_algorithm_proven"]
+          print("I0_EXACTONE_PAIRED_TRIALS="+str(d["trial_count"]))
+          print("I0_EXACTONE_PAIRED_COUNTS="+json.dumps(d["arms"],sort_keys=True))
+          PY
+      - name: Translate audit with Lapis (annotation only) and recheck source provenance using AIFC
+        run: |
+          python lapis/tools/lapis_converter.py json-to-algorithm \
+            /tmp/janus-i0-exactone-paired-report.json \
+            -o /tmp/janus-i0-exactone-lapis-ir.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"aifc/reference/verifier")
+          from canonical import loads_strict,domain_hash,CanonicalizationError
+          d=loads_strict(Path("/tmp/janus-i0-exactone-paired-report.json").read_text())
+          ir=loads_strict(Path("/tmp/janus-i0-exactone-lapis-ir.json").read_text())
+          assert d["source_snapshots"]["private_commit"]=="e23c4f25862d80a156de1410f66438119611612b"
+          assert d["source_snapshots"]["public_commit"]=="41b1c9b6af6629a551d2814aa69c5dfcac042620"
+          assert d["source_snapshots"]["shared_offline_butterfly_blob"]=="697ef1b46d6253f034e3c7b33783836e99c96052"
+          assert ir["scientific_boundary"]["heuristic_translation_is_proof"] is False
+          assert ir["algorithm"]["mode"]=="heuristic_translation"
+          assert all(v["operator"]=="ANNOTATE" for v in ir["algorithm"]["steps"])
+          h=domain_hash("JANUS:IO:EXACTONE-MATCHED-CONTROL:v1",d)
+          for broken in ('{"x":1,"x":2}','{"x":2.5}'):
+              try:loads_strict(broken)
+              except (CanonicalizationError,ValueError):pass
+              else:raise AssertionError("AIFC_INVALID_JSON_ACCEPTED")
+          output={
+              "schema":"janus.i0.exactone_crossrepo_provenance_v1",
+              "result":"PASS_ANNOTATION_ONLY",
+              "public_repo_commit":d["source_snapshots"]["public_commit"],
+              "private_repo_commit_reference_only":d["source_snapshots"]["private_commit"],
+              "private_contents_checkout":False,
+              "public_shared_script_blob":d["source_snapshots"]["shared_offline_butterfly_blob"],
+              "source_aifc_commit":"86bf957815911658edad330d5948e1bea2ea59b1",
+              "source_lapis_commit":"72daf0b4dce0467afad4f5f3ceaa813503923b30",
+              "paired_cases":d["trial_count"],
+              "aifc_domain_sha256":h,
+              "lapis_algorithm_sha256":ir["algorithm_sha256"],
+              "lapis_mathematical_proof_authority":False,
+              "fundamentum_math_proofs_independently_checked":True,
+              "new_rowan_provider_jobs":0,
+              "mining_executed":False,
+              "p_vs_np":"OPEN"
+          }
+          Path("/tmp/janus-i0-exactone-crossrepo-receipt.json").write_text(json.dumps(output,indent=2,sort_keys=True)+"\n")
+          print("I0_PUBLIC_REAL_OFFLINE_BUTTERFLY=PASS")
+          print("I0_AIFC_REAL_CANONICAL_VERIFICATION=PASS")
+          print("I0_LAPIS_REAL_CONVERTER=PASS_ANNOTATION_ONLY")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-i0-exactone-offline-proof-control
+          path: |
+            /tmp/janus-i0-exactone-paired-report.json
+            /tmp/janus-i0-exactone-crossrepo-receipt.json
+            /tmp/janus-i0-exactone-lapis-ir.json
+          retention-days: 21

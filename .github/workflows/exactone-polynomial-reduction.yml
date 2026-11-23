@@ -1,0 +1,141 @@
+name: Exact-One polynomial certificate preprocessor
+on:
+  pull_request:
+    paths:
+      - 'research/exactone_parity_preprocessor.py'
+      - 'research/exactone_forest_dp.py'
+      - 'research/exactone_bounded_cycle_cutset.py'
+      - 'research/exactone_bounded_width_dp.py'
+      - 'research/exactone_affine_nullity.py'
+      - 'research/exactone_component_factorization.py'
+      - 'docs/EXACTONE_HIGH_WIDTH_HIGH_NULLITY_COMPONENT_COMPOSITION_AIFC_20261028.md'
+      - 'docs/EXACTONE_HIGH_WIDTH_AFFINE_NULLITY_20261028.md'
+      - 'docs/EXACTONE_BOUNDED_WIDTH_UNBOUNDED_CYCLES_20261028.md'
+      - 'docs/EXACTONE_BOUNDED_CYCLE_CUTSET_20261028.md'
+      - 'docs/EXACTONE_INCIDENCE_FOREST_DP_20261028.md'
+      - 'docs/EXACTONE_POLYNOMIAL_PARITY_REDUCTION_20261028.md'
+      - '.github/workflows/exactone-polynomial-reduction.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mathematical-operator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Certificate verification and independent enumerator tests
+        run: python research/exactone_parity_preprocessor.py --self-test
+      - name: Bounded-incidence forest DP certificate and SAT/UNSAT controls
+        run: |
+          python research/exactone_forest_dp.py --self-test > /tmp/exactone-forest-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path("/tmp/exactone-forest-tests.json").read_text())
+          assert result["status"]=="PASS",result
+          assert result["tampered_message"]=="REJECTED",result
+          assert result["universal_polynomial_exactone_solver"] is False
+          print("EXACTONE_FOREST_DP_TEST="+str(result["cases"]))
+          print("EXACTONE_FOREST_RESULTS="+json.dumps(result["result_counts"],sort_keys=True))
+          PY
+      - name: Bounded cycle-cutset proof and independent enumeration
+        run: |
+          python research/exactone_bounded_cycle_cutset.py --self-test > /tmp/exactone-cutset-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/exactone-cutset-tests.json").read_text())
+          assert r["status"]=="PASS" and r["adversarial_witness_test"]=="REJECTED"
+          assert r["cyclic_example_cutset_size"]==1 and r["p_vs_np"]=="OPEN"
+          print("EXACTONE_CUTSET_TESTS="+str(r["cases"]))
+          print("EXACTONE_CUTSET_RESULTS="+json.dumps(r["statuses"],sort_keys=True))
+          PY
+      - name: Check unlimited cycle count under bounded primal width
+        run: |
+          python research/exactone_bounded_width_dp.py --self-test > /tmp/exactone-width-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/exactone-width-tests.json").read_text())
+          assert d["status"]=="PASS"
+          assert d["large_sat_n"]==83
+          assert d["large_sat_incidence_4cycles_lower_bound"]>=80
+          assert d["tampered_rehashed_projection"]=="REJECTED"
+          assert d["strong_open_width_gate"]=="PASS"
+          assert d["universal_polynomial_sat_solver"] is False
+          print("EXACTONE_BOUNDED_WIDTH_CASES="+str(d["small_reference_cases"]))
+          print("EXACTONE_UNBOUNDED_CYCLES="+str(d["large_sat_incidence_4cycles_lower_bound"]))
+          print("EXACTONE_WIDTH_RESULTS="+json.dumps(d["small_test_statuses"],sort_keys=True))
+          PY
+      - name: Independently replay high-treewidth Exact-One affine-kernel certificates
+        run: |
+          python research/exactone_affine_nullity.py --self-test > /tmp/exactone-affine-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/exactone-affine-tests.json").read_text())
+          assert d["status"]=="PASS"
+          assert d["independent_small_reference_cases"]>=500
+          assert d["high_width_primal_clique_vertices"]==66
+          assert d["high_width_proved_treewidth_lower_bound"]==65
+          assert d["high_width_sat"]["status"]=="SAT"
+          assert d["high_width_unsat"]["status"]=="UNSAT_EXACTONE"
+          assert d["rehashed_forged_unsat"]=="REJECTED"
+          assert d["open_when_large_nullity"]=="PASS"
+          assert d["universal_polynomial_solver"] is False
+          print("EXACTONE_AFFINE_SMALL_CASES="+str(d["independent_small_reference_cases"]))
+          print("EXACTONE_AFFINE_CLIQUE_WIDTH_LOWER_BOUND="+str(d["high_width_proved_treewidth_lower_bound"]))
+          print("EXACTONE_AFFINE_SAT="+str(d["high_width_sat"]))
+          print("EXACTONE_AFFINE_UNSAT="+str(d["high_width_unsat"]))
+          PY
+      - name: High-width high-nullity Exact-One component factorization certificates
+        run: |
+          python research/exactone_component_factorization.py --self-test > /tmp/exactone-component-tests.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/exactone-component-tests.json").read_text())
+          assert d["status"]=="PASS"
+          assert d["small_independent_reference_cases"]==306
+          assert d["high_width_high_nullity_family"]["variables"]==272
+          assert d["high_width_high_nullity_family"]["global_xor_nullity"]==16
+          assert d["high_width_high_nullity_family"]["primal_treewidth_lower_bound"]==16
+          assert d["high_width_high_nullity_family"]["sat"]=="PASS"
+          assert d["high_width_high_nullity_family"]["unsat"]=="PASS"
+          assert d["generic_connected_high_high_solved"] is False
+          assert d["tampered_rehashed_component"]=="REJECTED"
+          print("EXACTONE_COMPONENT_CASES="+str(d["small_independent_reference_cases"]))
+          print("EXACTONE_HIGH_WIDTH_HIGH_NULLITY="+json.dumps(d["high_width_high_nullity_family"],sort_keys=True))
+          PY
+      - name: Save deterministic example
+        run: |
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[1,2,4],[3,4,5]]}' > /tmp/exactone-gadget.json
+          python research/exactone_parity_preprocessor.py \
+            --input /tmp/exactone-gadget.json \
+            --output /tmp/exactone-result.json
+          test -s /tmp/exactone-result.json
+          printf '%s\n' '{"n":4,"clauses":[[1,2,3],[2,3,4]]}' > /tmp/exactone-cyclic-case.json
+          python research/exactone_bounded_cycle_cutset.py \
+            --input /tmp/exactone-cyclic-case.json \
+            --output /tmp/exactone-cutset-result.json
+          printf '%s\n' '{"n":5,"clauses":[[1,2,3],[3,4,5]]}' > /tmp/exactone-forest-case.json
+          python research/exactone_forest_dp.py --input /tmp/exactone-forest-case.json             --output /tmp/exactone-forest-result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exactone-gf2-certificate-test
+          path: |
+            /tmp/exactone-result.json
+            /tmp/exactone-forest-result.json
+            /tmp/exactone-forest-tests.json
+            /tmp/exactone-cutset-tests.json
+            /tmp/exactone-cutset-result.json
+            /tmp/exactone-width-tests.json
+            /tmp/exactone-affine-tests.json
+            /tmp/exactone-component-tests.json
+          retention-days: 21
