@@ -1,0 +1,61 @@
+name: JANUS TIME-SAT-PARTIAL-001 strong CDCL falsification
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_time_sat_partial_001*.py'
+      - 'tests/test_time_sat_partial_001.py'
+      - 'docs/TIME_SAT_PARTIAL_001_RESEARCH.md'
+      - '.github/workflows/validate-time-sat-partial-001.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_time_sat_partial_001*.py'
+      - 'tests/test_time_sat_partial_001.py'
+      - 'docs/TIME_SAT_PARTIAL_001_RESEARCH.md'
+      - '.github/workflows/validate-time-sat-partial-001.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: time-sat-partial-001-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strong-cdcl-comparison:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 12
+    steps:
+      - name: Independent checkout on this cloud host
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pin third-party SAT engine implementation
+        run: |
+          python -m pip install --disable-pip-version-check 'python-sat==1.9.dev17'
+          python -c "from pysat.solvers import Solver; import importlib.metadata as m; print('python-sat',m.version('python-sat')); print([x for x in ('cadical195','glucose4') if Solver(name=x).delete() is None])"
+      - name: Adversarial partial-propagation and incorrect-prune controls
+        run: python -m unittest discover -s tests -p 'test_time_sat_partial_001.py' -v
+      - name: Existing NOVIKOV-002 exact partial-state controls
+        run: python -m unittest discover -s tests -p 'test_novikov_002.py' -v
+      - name: Preserve original C023 independent serialized certificate verifier
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Run 60+5 identical test formulas against actual CaDiCaL195/Glucose4
+        run: >-
+          python experiments/direct/janus_time_sat_partial_001_benchmark.py
+          --out evidence/time-sat-partial-001-${{ matrix.runner }}.json
+      - name: Preserve complete samples, nulls, external engine stats and input hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-sat-partial-001-${{ matrix.runner }}
+          path: evidence/time-sat-partial-001-${{ matrix.runner }}.json
+          if-no-files-found: warn
+          retention-days: 30

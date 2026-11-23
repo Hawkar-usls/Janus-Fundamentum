@@ -1,0 +1,42 @@
+name: Validate JANUS-DEUTSCH-001 quantum simulation research
+
+on:
+  push:
+    paths:
+      - 'experiments/direct/janus_deutsch_001*.py'
+      - 'tests/test_deutsch_001.py'
+      - 'docs/DEUTSCH_001_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-001.yml'
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_deutsch_001*.py'
+      - 'tests/test_deutsch_001.py'
+      - 'docs/DEUTSCH_001_RESEARCH.md'
+      - '.github/workflows/validate-deutsch-001.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-quantum-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Independently falsify reversible SAT/Exact-One and interference controls
+        run: python -m unittest discover -s tests -p 'test_deutsch_001.py' -v
+      - name: Verify legacy C023 independent serialized replay still passes
+        run: python experiments/direct/janus_tear_policy0a_fc_serialized_verifier.py
+      - name: Charge all simulator work and compare same small instances with C023/UFR
+        run: python experiments/direct/janus_deutsch_001_benchmark.py --out evidence/deutsch-001.json
+      - name: Retain complete quantitative experimental report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deutsch-001-research-evidence
+          path: evidence/deutsch-001.json
+          if-no-files-found: warn
+          retention-days: 30

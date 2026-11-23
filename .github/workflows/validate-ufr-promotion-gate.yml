@@ -1,0 +1,86 @@
+name: UFR-001 cross-runner promotion evidence
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/direct/janus_ufr_001*.py'
+      - 'tests/test_ufr_001*.py'
+      - '.github/workflows/validate-ufr-promotion-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ufr-promotion-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-evidence:
+    name: paired-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 14
+    env:
+      UFR_RUNNER_OS: ${{ matrix.os }}
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Three paired MAJ3 runs and independent adversarial controls
+        run: >-
+          python experiments/direct/janus_ufr_001_paired.py
+          --rounds 3 --state-cap 3000
+          --out evidence/ufr-paired-${{ matrix.os }}.json
+      - name: Upload independent full results including actual RSS
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ufr-paired-${{ matrix.os }}
+          path: evidence/ufr-paired-${{ matrix.os }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  promotion-gate:
+    name: promotion-gate-requires-both-workers
+    needs: paired-evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ufr-paired-*
+          path: evidence
+          merge-multiple: true
+      - name: Enforce repeatability, 165-hit replay, wall-time and RSS gates
+        run: >-
+          python experiments/direct/janus_ufr_001_promotion_gate.py
+          evidence/ufr-paired-ubuntu-22.04.json
+          evidence/ufr-paired-ubuntu-24.04.json
+          --out ufr-promotion-gate.json
+      - name: Publish gate rationale
+        if: always()
+        shell: bash
+        run: |
+          if [ -f ufr-gate-summary.md ]; then
+            cat ufr-gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ufr-promotion-gate-result
+          path: |
+            ufr-promotion-gate.json
+            ufr-gate-summary.md
+          if-no-files-found: warn
+          retention-days: 30
